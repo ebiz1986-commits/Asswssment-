@@ -1,0 +1,6 @@
+{
+  "name": "Trades Assessment Portal",
+  "description": "A professional, mobile-first candidate evaluation and scorecard system for skilled trades: Bar Benders, Finishing Carpenters, Labours, and Masons, with standardized competency rubrics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
