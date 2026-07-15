@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { collection, doc, setDoc, deleteDoc, onSnapshot, getDocs } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
+import { exportToExcel } from "../utils";
 import { ArrowLeft, LogOut, UserPlus, Trash2, Database, ShieldAlert, CheckCircle, Mail, Key, User, Shield, Info, Signal, Wifi, Battery } from "lucide-react";
 
 interface UserProfile {
@@ -177,9 +178,26 @@ export default function AdminPage() {
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      setLoading(true);
+      const candSnap = await getDocs(collection(db, "candidates"));
+      const candidatesList: any[] = [];
+      candSnap.forEach((doc) => {
+        candidatesList.push({ id: doc.id, ...doc.data() });
+      });
+      exportToExcel(candidatesList, "Sanken_Full_Candidates_Database");
+    } catch (err) {
+      console.error("Export excel error:", err);
+      alert("Failed to export database to Excel.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none">
-      <div className="w-full h-screen sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-slate-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden sm:border-[10px] sm:border-slate-800 relative">
+    <div className="min-h-[100dvh] bg-slate-900 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none">
+      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-slate-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden sm:border-[10px] sm:border-slate-800 relative">
         
         {/* Notch */}
         <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-slate-800 rounded-b-2xl z-50">
@@ -187,7 +205,7 @@ export default function AdminPage() {
         </div>
 
         {/* Status bar */}
-        <div className="bg-slate-900 text-slate-300 px-6 pt-2 pb-1.5 flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
+        <div className="bg-slate-900 text-slate-300 px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
           <span className="font-semibold">{currentTime || "9:41 AM"}</span>
           <div className="flex items-center space-x-1.5">
             <Signal className="w-3.5 h-3.5 text-slate-300" />
@@ -235,15 +253,24 @@ export default function AdminPage() {
               <h2 className="text-xs font-black tracking-tight uppercase text-blue-300">Database Administration</h2>
             </div>
             <p className="text-[10px] text-slate-300 leading-normal font-medium">
-              Export all stored candidates assessments and active user credentials in a single backup package.
+              Export stored candidates assessments or user accounts details in Microsoft Excel or JSON formats.
             </p>
-            <button
-              onClick={handleExportDatabase}
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 rounded-xl text-2xs font-extrabold tracking-tight transition-all flex items-center justify-center gap-1.5 cursor-pointer text-white"
-            >
-              <Database className="w-3.5 h-3.5" />
-              Export Full Database Backup
-            </button>
+            <div className="grid grid-cols-1 gap-2">
+              <button
+                onClick={handleExportExcel}
+                className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 rounded-xl text-2xs font-extrabold tracking-tight transition-all flex items-center justify-center gap-1.5 cursor-pointer text-white"
+              >
+                <Database className="w-3.5 h-3.5 text-emerald-100" />
+                Download Candidates Excel
+              </button>
+              <button
+                onClick={handleExportDatabase}
+                className="w-full py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded-xl text-2xs font-extrabold tracking-tight transition-all flex items-center justify-center gap-1.5 cursor-pointer text-slate-200 border border-slate-700"
+              >
+                <Database className="w-3.5 h-3.5 text-slate-400" />
+                Export Full JSON Backup
+              </button>
+            </div>
           </div>
 
           {/* Feedback banners */}

@@ -130,3 +130,85 @@ export function getStatusBadgeClass(status: Candidate["status"]) {
       return "bg-slate-500 text-white";
   }
 }
+
+export function exportToExcel(candidates: Candidate[], titleFilename: string = "Trades_Assessment_Database") {
+  // Column Headers
+  const headers = [
+    "Reference ID",
+    "Candidate Name",
+    "Contact Number",
+    "Assessment Date",
+    "Assessor",
+    "Trade / Position",
+    "Section 1: Experience & Qual (Max 100)",
+    "Section 1: Weighted Score (50%)",
+    "Section 2: Knowledge & Practice (Max 100)",
+    "Section 2: Weighted Score (40%)",
+    "Section 3: Appearance & Attitude (Max 100)",
+    "Section 3: Weighted Score (10%)",
+    "Overall Competency Score (%)",
+    "Practical Test Required",
+    "Status",
+    "Notes / Remarks"
+  ];
+
+  // Helper to escape CSV values correctly
+  const escapeCSV = (val: any) => {
+    if (val === null || val === undefined) return "";
+    let str = String(val);
+    // Escape double quotes by doubling them
+    str = str.replace(/"/g, '""');
+    // If it contains double quotes, commas, or newlines, wrap in quotes
+    if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+      return `"${str}"`;
+    }
+    return str;
+  };
+
+  const rows = candidates.map(c => {
+    // Determine Position Label
+    let positionLabel: string = c.positionId;
+    if (c.positionId === "bar_bender") positionLabel = "Bar Bender";
+    else if (c.positionId === "finishing_carpenter") positionLabel = "Finishing Carpenter";
+    else if (c.positionId === "labour") positionLabel = "Labour";
+    else if (c.positionId === "mason") positionLabel = "Mason";
+
+    const s1 = calculateS1Score(c);
+    const s2 = calculateS2Score(c);
+    const s3 = calculateS3Score(c);
+    const overall = calculateOverallScore(c);
+
+    return [
+      escapeCSV(c.referenceId),
+      escapeCSV(c.name),
+      escapeCSV(c.contact || "N/A"),
+      escapeCSV(c.date),
+      escapeCSV(c.assessor || "N/A"),
+      escapeCSV(positionLabel),
+      s1.raw,
+      s1.weighted,
+      s2.raw,
+      s2.weighted,
+      s3.raw,
+      s3.weighted,
+      overall,
+      c.practicalTestRequired ? "Yes" : "No",
+      escapeCSV(c.status),
+      escapeCSV(c.notes || "")
+    ].join(",");
+  });
+
+  // Combine headers and rows with a UTF-8 BOM so Excel opens it correctly with unicode characters
+  const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+
+  // Trigger download
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `${titleFilename}_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+

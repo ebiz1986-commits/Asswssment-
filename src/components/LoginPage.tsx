@@ -80,8 +80,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none">
-      <div className="w-full h-screen sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-slate-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden sm:border-[10px] sm:border-slate-800 relative">
+    <div className="min-h-[100dvh] bg-slate-900 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none">
+      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-slate-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden sm:border-[10px] sm:border-slate-800 relative">
         
         {/* Notch */}
         <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-slate-800 rounded-b-2xl z-50">
@@ -89,7 +89,7 @@ export default function LoginPage() {
         </div>
 
         {/* Status bar */}
-        <div className="bg-slate-900 text-slate-300 px-6 pt-2 pb-1.5 flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
+        <div className="bg-slate-900 text-slate-300 px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
           <span className="font-semibold">9:41 AM</span>
           <div className="flex items-center space-x-1.5">
             <Signal className="w-3.5 h-3.5 text-slate-300" />
