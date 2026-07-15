@@ -32,13 +32,40 @@ export default function AdminPage() {
   const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
+    let unsubscribeProfile: (() => void) | null = null;
+
     // Current user validation
     const unsubscribeAuth = auth.onAuthStateChanged((user) => {
       if (user) {
         setCurrentUser(user);
-        // Only allow sankenoverseas admins or default admin
-        if (!user.email?.endsWith("@sankenoverseas.com")) {
+        const email = user.email?.trim().toLowerCase();
+        
+        // Only allow sankenoverseas domains
+        if (!email || !email.endsWith("@sankenoverseas.com")) {
           navigate("/login");
+          return;
+        }
+
+        if (email === "admin@sankenoverseas.com") {
+          // Master admin always allowed
+        } else {
+          // Check role from Firestore user profile
+          const docRef = doc(db, "user_profiles", email);
+          unsubscribeProfile = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              if (data.role !== "Admin") {
+                // Not an Admin! Redirect to home list screen
+                navigate("/");
+              }
+            } else {
+              // User has no custom profile document! Redirect to login
+              navigate("/login");
+            }
+          }, (error) => {
+            console.error("Profiles admin auth check error:", error);
+            navigate("/");
+          });
         }
       } else {
         navigate("/login");
@@ -72,6 +99,9 @@ export default function AdminPage() {
 
     return () => {
       unsubscribeAuth();
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
+      }
       unsubscribeProfiles();
       clearInterval(interval);
     };

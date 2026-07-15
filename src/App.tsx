@@ -17,14 +17,47 @@ import { RotateCcw, Download, Wifi, Battery, Signal, Shield, LogOut } from "luci
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    let unsubscribeProfile: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setLoading(false);
+      if (currentUser && currentUser.email) {
+        const email = currentUser.email.trim().toLowerCase();
+        if (email === "admin@sankenoverseas.com") {
+          setIsAdmin(true);
+          setLoading(false);
+        } else {
+          const docRef = doc(db, "user_profiles", email);
+          unsubscribeProfile = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setIsAdmin(data.role === "Admin");
+            } else {
+              setIsAdmin(false);
+            }
+            setLoading(false);
+          }, (error) => {
+            console.error("Error reading user profile:", error);
+            setIsAdmin(false);
+            setLoading(false);
+          });
+        }
+      } else {
+        setIsAdmin(false);
+        setLoading(false);
+      }
     });
-    return unsubscribe;
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeProfile) {
+        unsubscribeProfile();
+      }
+    };
   }, []);
 
   if (loading) {
@@ -38,13 +71,13 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" /> : <LoginPage />} />
-      <Route path="/" element={user ? <MainApp /> : <Navigate to="/login" />} />
-      <Route path="/admin" element={user ? <AdminPage /> : <Navigate to="/login" />} />
+      <Route path="/" element={user ? <MainApp isAdmin={isAdmin} /> : <Navigate to="/login" />} />
+      <Route path="/admin" element={(user && isAdmin) ? <AdminPage /> : (user ? <Navigate to="/" /> : <Navigate to="/login" />)} />
     </Routes>
   );
 }
 
-function MainApp() {
+function MainApp({ isAdmin }: { isAdmin: boolean }) {
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [selectedRole, setSelectedRole] = useState<'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason' | null>(null);
@@ -197,13 +230,15 @@ function MainApp() {
             </p>
           </div>
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => navigate("/admin")}
-              className="p-1.5 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-1 text-[9px] font-extrabold border border-slate-100 shadow-3xs"
-            >
-              <Shield className="w-3 h-3 text-slate-600" />
-              <span>Admin</span>
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => navigate("/admin")}
+                className="p-1.5 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-1 text-[9px] font-extrabold border border-slate-100 shadow-3xs"
+              >
+                <Shield className="w-3 h-3 text-slate-600" />
+                <span>Admin</span>
+              </button>
+            )}
             <button
               onClick={() => {
                 signOut(auth);
