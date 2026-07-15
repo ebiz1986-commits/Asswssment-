@@ -136,6 +136,8 @@ export function exportToExcel(candidates: Candidate[], titleFilename: string = "
   const headers = [
     "Reference ID",
     "Candidate Name",
+    "NIC Number",
+    "Passport Number",
     "Contact Number",
     "Assessment Date",
     "Assessor",
@@ -147,6 +149,7 @@ export function exportToExcel(candidates: Candidate[], titleFilename: string = "
     "Section 3: Appearance & Attitude (Max 100)",
     "Section 3: Weighted Score (10%)",
     "Overall Competency Score (%)",
+    "Pass/Fail",
     "Practical Test Required",
     "Status",
     "Notes / Remarks"
@@ -177,10 +180,13 @@ export function exportToExcel(candidates: Candidate[], titleFilename: string = "
     const s2 = calculateS2Score(c);
     const s3 = calculateS3Score(c);
     const overall = calculateOverallScore(c);
+    const passStatus = overall > 59 ? "Pass" : "Fail";
 
     return [
       escapeCSV(c.referenceId),
       escapeCSV(c.name),
+      escapeCSV(c.nicNumber || "N/A"),
+      escapeCSV(c.passportNumber || "N/A"),
       escapeCSV(c.contact || "N/A"),
       escapeCSV(c.date),
       escapeCSV(c.assessor || "N/A"),
@@ -192,6 +198,7 @@ export function exportToExcel(candidates: Candidate[], titleFilename: string = "
       s3.raw,
       s3.weighted,
       overall,
+      passStatus,
       c.practicalTestRequired ? "Yes" : "No",
       escapeCSV(c.status),
       escapeCSV(c.notes || "")

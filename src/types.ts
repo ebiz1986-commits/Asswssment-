@@ -3,6 +3,9 @@ export interface Candidate {
   positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason';
   name: string;
   referenceId: string;
+  nicNumber?: string;
+  passportNumber?: string;
+  photoUrl?: string;
   date: string;
   assessor: string;
   contact: string;

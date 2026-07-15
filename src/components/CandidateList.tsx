@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Candidate, POSITIONS } from "../types";
 import { calculateOverallScore, getStatusColor, exportToExcel } from "../utils";
-import { Search, Plus, ArrowLeft, SlidersHorizontal, Award, Scale, Phone, Download } from "lucide-react";
+import { Search, Plus, ArrowLeft, SlidersHorizontal, Award, Scale, Phone, Download, User } from "lucide-react";
 
 interface CandidateListProps {
   candidates: Candidate[];
@@ -38,6 +38,8 @@ export default function CandidateList({
         const matchesSearch =
           c.name.toLowerCase().includes(search.toLowerCase()) ||
           c.referenceId.toLowerCase().includes(search.toLowerCase()) ||
+          (c.nicNumber && c.nicNumber.toLowerCase().includes(search.toLowerCase())) ||
+          (c.passportNumber && c.passportNumber.toLowerCase().includes(search.toLowerCase())) ||
           (c.assessor && c.assessor.toLowerCase().includes(search.toLowerCase()));
 
         const matchesStatus = statusFilter === "All" || c.status === statusFilter;
@@ -186,20 +188,29 @@ export default function CandidateList({
                     : "bg-white hover:bg-slate-50 border-slate-100/80 shadow-3xs"
                 }`}
               >
-
-
-                <div className="flex justify-between items-start mb-1">
-                  <div>
-                    <h3 className="font-extrabold text-slate-900 text-sm tracking-tight font-sans line-clamp-1">{c.name}</h3>
-                    <p className="text-4xs text-slate-400 font-mono tracking-widest mt-0.5">{c.referenceId}</p>
+                <div className="flex items-start space-x-3">
+                  {c.photoUrl ? (
+                    <img referrerPolicy="no-referrer" src={c.photoUrl} alt={c.name} className="w-12 h-12 rounded-xl object-cover border border-slate-150 shadow-3xs shrink-0" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 shrink-0">
+                      <User className="w-5 h-5 text-slate-400 stroke-[1.8]" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="min-w-0">
+                        <h3 className="font-extrabold text-slate-900 text-sm tracking-tight font-sans line-clamp-1">{c.name}</h3>
+                        <p className="text-4xs text-slate-400 font-mono tracking-widest mt-0.5">{c.referenceId}</p>
+                      </div>
+                      <span
+                        className={`px-2 py-0.5 text-4xs font-bold rounded-full border tracking-wide uppercase shrink-0 ${getStatusColor(
+                          c.status
+                        )}`}
+                      >
+                        {c.status === "Pending Practical" ? "Pending" : c.status}
+                      </span>
+                    </div>
                   </div>
-                  <span
-                    className={`px-2 py-0.5 text-4xs font-bold rounded-full border tracking-wide uppercase ${getStatusColor(
-                      c.status
-                    )}`}
-                  >
-                    {c.status === "Pending Practical" ? "Pending" : c.status}
-                  </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100/60 text-2xs">
@@ -207,7 +218,12 @@ export default function CandidateList({
                     <Award className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <div>
                       <p className="text-[9px] text-slate-400 leading-none">Competency</p>
-                      <p className="font-extrabold text-slate-800 mt-0.5">{overallScore}%</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="font-extrabold text-slate-800">{overallScore}%</span>
+                        <span className={`px-1 py-0.2 text-[7px] font-black tracking-wider rounded uppercase border ${overallScore > 59 ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"}`}>
+                          {overallScore > 59 ? "Pass" : "Fail"}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -223,8 +239,8 @@ export default function CandidateList({
                 </div>
 
                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50 text-[10px] text-slate-400 font-medium">
-                  <span>Assessor: {c.assessor || "N/A"}</span>
-                  <span className="flex items-center gap-1 font-mono text-[9px]">
+                  <span className="truncate">Assessor: {c.assessor || "N/A"}</span>
+                  <span className="flex items-center gap-1 font-mono text-[9px] shrink-0">
                     <Phone className="w-2.5 h-2.5 text-slate-300" />
                     {c.contact ? c.contact : "No Contact"}
                   </span>

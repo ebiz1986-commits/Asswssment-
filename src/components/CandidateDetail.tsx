@@ -137,21 +137,30 @@ export default function CandidateDetail({
         {/* Candidate Profile Metadata */}
         <div className="bg-white rounded-2xl p-4.5 border border-slate-100 shadow-3xs space-y-4 print:border-none print:shadow-none print:p-0 print:mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-4 border-b border-slate-100/60">
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-bold text-blue-600 uppercase font-mono tracking-wider">
-                  {positionInfo?.title}
-                </span>
-                <span className={`px-2 py-0.5 text-4xs font-bold rounded-full border tracking-wide uppercase ${getStatusColor(candidate.status)}`}>
-                  {candidate.status === "Pending Practical" ? "Pending" : candidate.status}
-                </span>
+            <div className="flex items-center space-x-3.5">
+              {candidate.photoUrl ? (
+                <img referrerPolicy="no-referrer" src={candidate.photoUrl} alt={candidate.name} className="w-16 h-16 rounded-2xl object-cover border border-slate-200 shadow-3xs shrink-0" />
+              ) : (
+                <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0 shadow-3xs">
+                  <User className="w-7 h-7 stroke-[1.6]" />
+                </div>
+              )}
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-[10px] font-bold text-blue-600 uppercase font-mono tracking-wider">
+                    {positionInfo?.title}
+                  </span>
+                  <span className={`px-2 py-0.5 text-4xs font-bold rounded-full border tracking-wide uppercase ${getStatusColor(candidate.status)}`}>
+                    {candidate.status === "Pending Practical" ? "Pending" : candidate.status}
+                  </span>
+                </div>
+                <h2 className="text-xl font-extrabold text-slate-950 font-sans mt-1">
+                  {candidate.name}
+                </h2>
               </div>
-              <h2 className="text-xl font-extrabold text-slate-950 font-sans mt-1">
-                {candidate.name}
-              </h2>
             </div>
 
-            {/* Overall Metric Circular Score */}
+            {/* Overall Metric Circular Score with Pass/Fail Badge */}
             <div className="flex items-center space-x-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100 self-stretch sm:self-auto justify-center print:border-none print:bg-white print:p-0">
               <div className="relative flex items-center justify-center w-12 h-12 shrink-0">
                 <svg className="w-full h-full transform -rotate-90">
@@ -160,7 +169,7 @@ export default function CandidateDetail({
                     cx="24"
                     cy="24"
                     r="21"
-                    className="stroke-blue-600 transition-all duration-300"
+                    className={`${overall > 59 ? "stroke-emerald-600" : "stroke-rose-600"} transition-all duration-300`}
                     strokeWidth="4.5"
                     fill="transparent"
                     strokeDasharray={`${2 * Math.PI * 21}`}
@@ -171,8 +180,13 @@ export default function CandidateDetail({
                 <span className="absolute text-2xs font-extrabold text-slate-900">{overall}%</span>
               </div>
               <div>
-                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">COMPETENCY</p>
-                <p className="text-xs font-black text-slate-800 mt-1">Overall score</p>
+                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">STATUS &amp; SCORE</p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <p className="text-xs font-black text-slate-800">Scorecard</p>
+                  <span className={`px-1.5 py-0.5 text-[8px] font-extrabold rounded-md uppercase border ${overall > 59 ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-rose-50 text-rose-800 border-rose-200"}`}>
+                    {overall > 59 ? "Pass" : "Fail"}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -186,6 +200,14 @@ export default function CandidateDetail({
             <div className="flex items-center space-x-2">
               <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
               <span><strong className="text-slate-800 font-semibold">Date:</strong> {candidate.date}</span>
+            </div>
+            <div className="flex items-center space-x-2 col-span-2 sm:col-span-1">
+              <UserCheck className="w-4 h-4 text-slate-400 shrink-0" />
+              <span><strong className="text-slate-800 font-semibold">NIC No:</strong> {candidate.nicNumber || "N/A"}</span>
+            </div>
+            <div className="flex items-center space-x-2 col-span-2 sm:col-span-1">
+              <FileText className="w-4 h-4 text-slate-400 shrink-0" />
+              <span><strong className="text-slate-800 font-semibold">Passport:</strong> {candidate.passportNumber || "N/A"}</span>
             </div>
             <div className="flex items-center space-x-2">
               <User className="w-4 h-4 text-slate-400 shrink-0" />

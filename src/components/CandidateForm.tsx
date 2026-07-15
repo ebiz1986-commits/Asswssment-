@@ -1,7 +1,7 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import { Candidate, POSITIONS, getPositionRubrics } from "../types";
 import { migrateCandidateToHundredScale } from "../utils";
-import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer } from "lucide-react";
+import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer, Camera, Upload, Trash2, User, Image } from "lucide-react";
 
 interface CandidateFormProps {
   candidate?: Candidate | null; // If null, we are adding new
@@ -22,9 +22,81 @@ export default function CandidateForm({
   // Base profile fields
   const [name, setName] = useState(initialCandidate?.name || "");
   const [referenceId, setReferenceId] = useState(initialCandidate?.referenceId || "");
+  const [nicNumber, setNicNumber] = useState(initialCandidate?.nicNumber || "");
+  const [passportNumber, setPassportNumber] = useState(initialCandidate?.passportNumber || "");
+  const [photoUrl, setPhotoUrl] = useState(initialCandidate?.photoUrl || "");
   const [date, setDate] = useState(initialCandidate?.date || new Date().toISOString().split("T")[0]);
   const [assessor, setAssessor] = useState(initialCandidate?.assessor || "");
   const [contact, setContact] = useState(initialCandidate?.contact || "");
+
+  // Camera states
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [stream]);
+
+  const startCamera = async () => {
+    setCameraError(null);
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false
+      });
+      setStream(mediaStream);
+      setCameraActive(true);
+      setTimeout(() => {
+        const videoElement = document.getElementById("candidate-video") as HTMLVideoElement;
+        if (videoElement) {
+          videoElement.srcObject = mediaStream;
+        }
+      }, 200);
+    } catch (err: any) {
+      console.error("Error accessing camera:", err);
+      setCameraError("Could not access camera. Please make sure camera permissions are enabled, or upload an image instead.");
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
+    setCameraActive(false);
+  };
+
+  const capturePhoto = () => {
+    const videoElement = document.getElementById("candidate-video") as HTMLVideoElement;
+    if (videoElement) {
+      const canvas = document.createElement("canvas");
+      canvas.width = videoElement.videoWidth || 640;
+      canvas.height = videoElement.videoHeight || 480;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        setPhotoUrl(dataUrl);
+        stopCamera();
+      }
+    }
+  };
+
+  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Section 1: Experience & Quals (Marks out of 100)
   const [s1_siteExperience, setS1SiteExperience] = useState<number | "">(
@@ -159,6 +231,11 @@ export default function CandidateForm({
       return;
     }
 
+    if (!isDraft && !nicNumber.trim()) {
+      alert("Please enter the National Identity Card (NIC) Number to proceed.");
+      return;
+    }
+
     const calculatedStatus = isDraft
       ? "Draft"
       : computeStatus(estimatedOverallScore, practicalTestRequired);
@@ -168,6 +245,9 @@ export default function CandidateForm({
       positionId,
       name: name.trim(),
       referenceId: referenceId.trim() || `REF-${Date.now()}`,
+      nicNumber: nicNumber.trim(),
+      passportNumber: passportNumber.trim(),
+      photoUrl: photoUrl || "",
       date,
       assessor: assessor.trim() || "Assessor",
       contact: contact.trim() || "+94 77 000 0000",
@@ -223,11 +303,19 @@ export default function CandidateForm({
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 custom-scrollbar pb-10">
         
         {/* 2. Total Score Card (Black rounded card with dynamic content) */}
-        <div className="bg-[#141414] rounded-[20px] p-5 text-white flex flex-col justify-between shadow-xs">
-          <span className="text-slate-400 text-xs font-semibold tracking-wider uppercase">Total Score</span>
-          <div className="mt-2.5 flex items-baseline gap-1.5">
-            <span className="text-4xl font-extrabold text-white font-sans">{estimatedOverallScore}</span>
-            <span className="text-slate-400 text-sm font-medium">/ 100</span>
+        <div className="bg-[#141414] rounded-[20px] p-5 text-white flex justify-between items-center shadow-xs">
+          <div>
+            <span className="text-slate-400 text-xs font-semibold tracking-wider uppercase">Total Score</span>
+            <div className="mt-2.5 flex items-baseline gap-1.5">
+              <span className="text-4xl font-extrabold text-white font-sans">{estimatedOverallScore}</span>
+              <span className="text-slate-400 text-sm font-medium">/ 100</span>
+            </div>
+          </div>
+          <div className="text-right">
+            <span className={`inline-block px-3 py-1 rounded-xl font-sans text-xs font-black tracking-wider uppercase border ${estimatedOverallScore > 59 ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" : "bg-rose-500/15 text-rose-400 border-rose-500/30"}`}>
+              {estimatedOverallScore > 59 ? "PASS" : "FAIL"}
+            </span>
+            <p className="text-[9px] text-slate-400 mt-1 font-semibold">Score &gt; 59 to Pass</p>
           </div>
         </div>
 
@@ -236,6 +324,81 @@ export default function CandidateForm({
           <h2 className="text-base font-extrabold text-slate-900 tracking-tight border-b border-slate-50 pb-2.5">
             Candidate Information
           </h2>
+
+          {/* Photo Attachment Widget */}
+          <div className="pb-3 border-b border-slate-50">
+            <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-2">
+              Candidate Photo Attachment
+            </label>
+            
+            {photoUrl ? (
+              <div className="relative w-36 h-36 mx-auto rounded-2xl overflow-hidden border-2 border-indigo-100 shadow-3xs bg-slate-100 group">
+                <img referrerPolicy="no-referrer" src={photoUrl} alt="Candidate Preview" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setPhotoUrl("")}
+                  className="absolute bottom-2 right-2 p-1.5 bg-rose-600 text-white hover:bg-rose-700 rounded-lg shadow-sm transition-all cursor-pointer hover:scale-105"
+                  title="Remove photo"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ) : cameraActive ? (
+              <div className="relative w-full max-w-sm mx-auto rounded-2xl overflow-hidden border border-slate-200 bg-black aspect-video flex flex-col justify-between">
+                <video id="candidate-video" autoPlay playsInline className="w-full h-full object-cover" />
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center space-x-2 px-4">
+                  <button
+                    type="button"
+                    onClick={capturePhoto}
+                    className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer flex items-center space-x-1"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>Capture</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={stopCamera}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full max-w-sm mx-auto p-4.5 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50 flex flex-col items-center justify-center text-center space-y-3">
+                <div className="p-3 bg-slate-100 rounded-2xl text-slate-400">
+                  <User className="w-6 h-6 stroke-[1.8]" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-700">No Photo Attached</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Take a live photo or upload from device</p>
+                </div>
+                {cameraError && (
+                  <p className="text-[10px] text-rose-500 bg-rose-50 border border-rose-100 p-2 rounded-lg max-w-xs">{cameraError}</p>
+                )}
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={startCamera}
+                    className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 border border-indigo-150"
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>Take Photo</span>
+                  </button>
+                  <label className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-extrabold border border-slate-200 transition-all cursor-pointer flex items-center space-x-1 shadow-3xs">
+                    <Upload className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Upload Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="space-y-4">
             {/* Candidate Name */}
@@ -253,31 +416,63 @@ export default function CandidateForm({
               />
             </div>
 
-            {/* NRIC / Passport No */}
-            <div>
-              <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
-                NRIC / Passport No.
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. 880123-14-1234"
-                value={referenceId}
-                onChange={(e) => setReferenceId(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-all font-medium"
-              />
+            {/* Separate ID Fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* NIC Number */}
+              <div>
+                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                  NIC Number * <span className="text-[10px] text-indigo-600 font-bold">(Mandatory)</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 199501234567 or 950123456V"
+                  value={nicNumber}
+                  onChange={(e) => setNicNumber(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-all font-semibold"
+                />
+              </div>
+
+              {/* Passport Number */}
+              <div>
+                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                  Passport Number <span className="text-[10px] text-slate-400 font-bold">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. N1234567"
+                  value={passportNumber}
+                  onChange={(e) => setPassportNumber(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-all font-semibold"
+                />
+              </div>
             </div>
 
-            {/* Position */}
-            <div>
-              <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
-                Position
-              </label>
-              <input
-                type="text"
-                readOnly
-                value={currentTrade?.title || ""}
-                className="w-full px-4 py-3 border border-slate-100 rounded-xl text-sm bg-slate-50 text-slate-500 font-bold focus:outline-none select-none"
-              />
+            {/* Reference ID and Position info */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                  Assessment Ref ID
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={referenceId}
+                  className="w-full px-4 py-3 border border-slate-100 rounded-xl text-sm bg-slate-50 text-slate-500 font-bold focus:outline-none select-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                  Position
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={currentTrade?.title || ""}
+                  className="w-full px-4 py-3 border border-slate-100 rounded-xl text-sm bg-slate-50 text-slate-500 font-bold focus:outline-none select-none"
+                />
+              </div>
             </div>
 
             {/* Assessment Date */}
