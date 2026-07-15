@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { Candidate, POSITIONS, getPositionRubrics } from "../types";
 import { migrateCandidateToHundredScale } from "../utils";
-import { ArrowLeft, Calendar, ClipboardCheck, Save } from "lucide-react";
+import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer } from "lucide-react";
 
 interface CandidateFormProps {
   candidate?: Candidate | null; // If null, we are adding new
@@ -299,17 +299,25 @@ export default function CandidateForm({
         </div>
 
         {/* 4. Section 1: Experience & Qualification */}
-        <div className="bg-white rounded-[20px] border border-slate-100 p-6 space-y-5 shadow-3xs">
-          <div className="flex justify-between items-center pb-2.5 border-b border-slate-50">
-            <h3 className="text-sm font-black text-slate-900 tracking-tight">
-              1. Experience & Qualification (50%)
-            </h3>
-            <span className="text-slate-400 text-xs font-extrabold font-mono">
-              {s1Subtotal} / 50
-            </span>
+        <div className="bg-white rounded-[20px] border-l-[6px] border-l-blue-600 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
+          <div className="bg-blue-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100">
+            <div className="flex items-center space-x-2.5">
+              <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg shrink-0">
+                <Award className="w-4 h-4 stroke-[2.5]" />
+              </div>
+              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans">
+                Section 1: Experience & Quals
+              </h3>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-blue-800 text-xs font-black font-mono bg-blue-100/60 px-2.5 py-1 rounded-lg">
+                {s1Subtotal} / 50
+              </span>
+              <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">50% Weight</span>
+            </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="p-5 space-y-4">
             {/* Site Experience */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-800 leading-normal">
@@ -338,7 +346,7 @@ export default function CandidateForm({
             </div>
 
             {/* NVQ Qualification */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-50/55">
+            <div className="space-y-1.5 pt-4 border-t border-slate-100">
               <label className="block text-xs font-bold text-slate-800 leading-normal">
                 {rubrics.s1.s1_nvqQualification.label}
               </label>
@@ -365,7 +373,7 @@ export default function CandidateForm({
             </div>
 
             {/* 3rd Party Recommendation */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-50/55">
+            <div className="space-y-1.5 pt-4 border-t border-slate-100">
               <label className="block text-xs font-bold text-slate-800 leading-normal">
                 {rubrics.s1.s1_recommendation.label}
               </label>
@@ -394,17 +402,25 @@ export default function CandidateForm({
         </div>
 
         {/* 5. Section 2: Knowledge & Practice */}
-        <div className="bg-white rounded-[20px] border border-slate-100 p-6 space-y-5 shadow-3xs">
-          <div className="flex justify-between items-center pb-2.5 border-b border-slate-50">
-            <h3 className="text-sm font-black text-slate-900 tracking-tight">
-              2. Knowledge & Practice (40%)
-            </h3>
-            <span className="text-slate-400 text-xs font-extrabold font-mono">
-              {s2Subtotal} / 40
-            </span>
+        <div className="bg-white rounded-[20px] border-l-[6px] border-l-indigo-600 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
+          <div className="bg-indigo-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100">
+            <div className="flex items-center space-x-2.5">
+              <div className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg shrink-0">
+                <BookOpen className="w-4 h-4 stroke-[2.5]" />
+              </div>
+              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans">
+                Section 2: Knowledge & Practice
+              </h3>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-indigo-800 text-xs font-black font-mono bg-indigo-100/60 px-2.5 py-1 rounded-lg">
+                {s2Subtotal} / 40
+              </span>
+              <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">40% Weight</span>
+            </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="p-5 space-y-4">
             {/* Measurement Reading */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-800 leading-normal">
@@ -433,7 +449,7 @@ export default function CandidateForm({
             </div>
 
             {/* Knowledge in Machines */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-50/55">
+            <div className="space-y-1.5 pt-4 border-t border-slate-100">
               <label className="block text-xs font-bold text-slate-800 leading-normal">
                 {rubrics.s2.s2_machineKnowledge.label}
               </label>
@@ -460,7 +476,7 @@ export default function CandidateForm({
             </div>
 
             {/* Knowledge & Practise Methodology */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-50/55">
+            <div className="space-y-1.5 pt-4 border-t border-slate-100">
               <label className="block text-xs font-bold text-slate-800 leading-normal">
                 {rubrics.s2.s2_methodology.label}
               </label>
@@ -487,7 +503,7 @@ export default function CandidateForm({
             </div>
 
             {/* Knowledge & Practise with HSE */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-50/55">
+            <div className="space-y-1.5 pt-4 border-t border-slate-100">
               <label className="block text-xs font-bold text-slate-800 leading-normal">
                 {rubrics.s2.s2_hseEquipment.label}
               </label>
@@ -516,17 +532,25 @@ export default function CandidateForm({
         </div>
 
         {/* 6. Section 3: Appearance & Attitude */}
-        <div className="bg-white rounded-[20px] border border-slate-100 p-6 space-y-5 shadow-3xs">
-          <div className="flex justify-between items-center pb-2.5 border-b border-slate-50">
-            <h3 className="text-sm font-black text-slate-900 tracking-tight">
-              3. Appearance & Attitude (10%)
-            </h3>
-            <span className="text-slate-400 text-xs font-extrabold font-mono">
-              {s3Subtotal} / 10
-            </span>
+        <div className="bg-white rounded-[20px] border-l-[6px] border-l-amber-500 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
+          <div className="bg-amber-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100">
+            <div className="flex items-center space-x-2.5">
+              <div className="p-1.5 bg-amber-100 text-amber-700 rounded-lg shrink-0">
+                <Heart className="w-4 h-4 stroke-[2.5]" />
+              </div>
+              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans">
+                Section 3: Appearance & Attitude
+              </h3>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-amber-800 text-xs font-black font-mono bg-amber-100/60 px-2.5 py-1 rounded-lg">
+                {s3Subtotal} / 10
+              </span>
+              <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">10% Weight</span>
+            </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="p-5 space-y-4">
             {/* Physical Appearance & Fitness */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-800 leading-normal">
@@ -555,7 +579,7 @@ export default function CandidateForm({
             </div>
 
             {/* Health Condition */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-50/55">
+            <div className="space-y-1.5 pt-4 border-t border-slate-100">
               <label className="block text-xs font-bold text-slate-800 leading-normal">
                 {rubrics.s3.s3_healthCondition.label}
               </label>
@@ -582,7 +606,7 @@ export default function CandidateForm({
             </div>
 
             {/* Character & Attitude */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-50/55">
+            <div className="space-y-1.5 pt-4 border-t border-slate-100">
               <label className="block text-xs font-bold text-slate-800 leading-normal">
                 {rubrics.s3.s3_characterAttitude.label}
               </label>
@@ -609,7 +633,7 @@ export default function CandidateForm({
             </div>
 
             {/* Ability to Work Extended Hours */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-50/55">
+            <div className="space-y-1.5 pt-4 border-t border-slate-100">
               <label className="block text-xs font-bold text-slate-800 leading-normal">
                 {rubrics.s3.s3_extendedHours.label}
               </label>
@@ -638,18 +662,23 @@ export default function CandidateForm({
         </div>
 
         {/* 7. Section 4: Practical Test & Remarks */}
-        <div className="bg-white rounded-[20px] border border-slate-100 p-6 space-y-4 shadow-3xs">
-          <h3 className="text-sm font-black text-slate-900 tracking-tight border-b border-slate-50 pb-2.5">
-            4. Practical Test & Remarks
-          </h3>
+        <div className="bg-white rounded-[20px] border-l-[6px] border-l-emerald-600 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
+          <div className="bg-emerald-50/40 px-5 py-4 flex items-center space-x-2.5 border-b border-slate-100">
+            <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg shrink-0">
+              <Hammer className="w-4 h-4 stroke-[2.5]" />
+            </div>
+            <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans">
+              Section 4: Practical Test & Remarks
+            </h3>
+          </div>
 
-          <div className="space-y-4">
+          <div className="p-5 space-y-4">
             {/* Practical Test */}
             <div>
               <label className="block text-xs font-bold text-slate-800 leading-normal mb-1">
                 Practical Test Status
               </label>
-              <p className="text-[10px] text-slate-400 font-bold tracking-tight mb-3">
+              <p className="text-[10px] text-slate-400 font-semibold tracking-tight mb-3">
                 Check if a practical field test is required
               </p>
               
@@ -669,7 +698,7 @@ export default function CandidateForm({
             </div>
 
             {/* Remarks */}
-            <div className="pt-3 border-t border-slate-50">
+            <div className="pt-4 border-t border-slate-100">
               <label className="block text-xs font-bold text-slate-800 mb-1.5">
                 Remarks
               </label>

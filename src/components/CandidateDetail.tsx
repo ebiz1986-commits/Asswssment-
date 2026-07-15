@@ -204,22 +204,22 @@ export default function CandidateDetail({
         <div className="space-y-3">
           
           {/* S1 Accordion */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-3xs overflow-hidden">
+          <div className="bg-white rounded-2xl border-l-[6px] border-l-blue-600 border-y border-r border-slate-200 shadow-3xs overflow-hidden">
             <button
               onClick={() => toggleSection("s1")}
-              className="w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer no-print active:bg-slate-50"
+              className={`w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer no-print active:bg-blue-50/40 transition-all ${expandedSection === "s1" ? "bg-blue-50/20" : ""}`}
             >
               <div className="flex items-center space-x-2.5">
-                <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
-                  <Award className="w-4.5 h-4.5" />
+                <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg">
+                  <Award className="w-4.5 h-4.5 stroke-[2.2]" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-slate-800 font-sans">Experience & Qualifications</h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Subtotal: {s1.raw}/100 | Weight: 50%</p>
+                  <h3 className="text-xs font-black text-slate-900 font-sans">Section 1: Experience & Quals</h3>
+                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Subtotal: {s1.raw}/100 | Weight: 50%</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <span className="text-xs font-bold text-blue-700 font-mono bg-blue-50/70 px-2 py-0.5 rounded-md">
+                <span className="text-xs font-bold text-blue-800 font-mono bg-blue-100/70 px-2.5 py-0.5 rounded-lg border border-blue-200/50">
                   {s1.weighted}%
                 </span>
                 {expandedSection === "s1" ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
@@ -228,7 +228,7 @@ export default function CandidateDetail({
 
             {/* Content block: visible when expanded or on print */}
             {(expandedSection === "s1" || window.matchMedia("print").matches) && (
-              <div className="p-4 pt-1.5 border-t border-slate-50 space-y-4">
+              <div className="p-4 pt-4 border-t border-slate-100 space-y-4 bg-slate-50/30">
                 <div className="space-y-3.5">
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center text-2xs font-semibold text-slate-600">
@@ -277,22 +277,22 @@ export default function CandidateDetail({
           </div>
 
           {/* S2 Accordion */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-3xs overflow-hidden">
+          <div className="bg-white rounded-2xl border-l-[6px] border-l-indigo-600 border-y border-r border-slate-200 shadow-3xs overflow-hidden">
             <button
               onClick={() => toggleSection("s2")}
-              className="w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer no-print active:bg-slate-50"
+              className={`w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer no-print active:bg-indigo-50/40 transition-all ${expandedSection === "s2" ? "bg-indigo-50/20" : ""}`}
             >
               <div className="flex items-center space-x-2.5">
-                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
-                  <BookOpen className="w-4.5 h-4.5" />
+                <div className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg">
+                  <BookOpen className="w-4.5 h-4.5 stroke-[2.2]" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-slate-800 font-sans">Knowledge & Practice</h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Subtotal: {s2.raw}/100 | Weight: 40%</p>
+                  <h3 className="text-xs font-black text-slate-900 font-sans">Section 2: Knowledge & Practice</h3>
+                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Subtotal: {s2.raw}/100 | Weight: 40%</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <span className="text-xs font-bold text-indigo-700 font-mono bg-indigo-50/70 px-2 py-0.5 rounded-md">
+                <span className="text-xs font-bold text-indigo-800 font-mono bg-indigo-100/70 px-2.5 py-0.5 rounded-lg border border-indigo-200/50">
                   {s2.weighted}%
                 </span>
                 {expandedSection === "s2" ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
@@ -301,7 +301,7 @@ export default function CandidateDetail({
 
             {/* Content block: visible when expanded or on print */}
             {(expandedSection === "s2" || window.matchMedia("print").matches) && (
-              <div className="p-4 pt-1.5 border-t border-slate-50 space-y-4">
+              <div className="p-4 pt-4 border-t border-slate-100 space-y-4 bg-slate-50/30">
                 <div className="space-y-3.5">
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center text-2xs font-semibold text-slate-600">
@@ -364,22 +364,22 @@ export default function CandidateDetail({
           </div>
 
           {/* S3 Accordion */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-3xs overflow-hidden">
+          <div className="bg-white rounded-2xl border-l-[6px] border-l-amber-500 border-y border-r border-slate-200 shadow-3xs overflow-hidden">
             <button
               onClick={() => toggleSection("s3")}
-              className="w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer no-print active:bg-slate-50"
+              className={`w-full px-4 py-3.5 flex items-center justify-between text-left cursor-pointer no-print active:bg-amber-50/40 transition-all ${expandedSection === "s3" ? "bg-amber-50/20" : ""}`}
             >
               <div className="flex items-center space-x-2.5">
-                <div className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
-                  <Heart className="w-4.5 h-4.5" />
+                <div className="p-1.5 bg-amber-100 text-amber-700 rounded-lg">
+                  <Heart className="w-4.5 h-4.5 stroke-[2.2]" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-slate-800 font-sans">Appearance & Attitude</h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Subtotal: {s3.raw}/100 | Weight: 10%</p>
+                  <h3 className="text-xs font-black text-slate-900 font-sans">Section 3: Appearance & Attitude</h3>
+                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Subtotal: {s3.raw}/100 | Weight: 10%</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <span className="text-xs font-bold text-amber-700 font-mono bg-amber-50/70 px-2 py-0.5 rounded-md">
+                <span className="text-xs font-bold text-amber-800 font-mono bg-amber-100/70 px-2.5 py-0.5 rounded-lg border border-amber-200/50">
                   {s3.weighted}%
                 </span>
                 {expandedSection === "s3" ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
@@ -388,7 +388,7 @@ export default function CandidateDetail({
 
             {/* Content block: visible when expanded or on print */}
             {(expandedSection === "s3" || window.matchMedia("print").matches) && (
-              <div className="p-4 pt-1.5 border-t border-slate-50 space-y-4">
+              <div className="p-4 pt-4 border-t border-slate-100 space-y-4 bg-slate-50/30">
                 <div className="space-y-3.5">
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center text-2xs font-semibold text-slate-600">
@@ -453,10 +453,10 @@ export default function CandidateDetail({
         </div>
 
         {/* Practical Field Test Section Card */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-4.5 shadow-3xs space-y-4">
-          <h3 className="text-xs font-bold text-slate-800 flex items-center gap-2 font-sans">
-            <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg shrink-0">
-              <Hammer className="w-4 h-4" />
+        <div className="bg-white rounded-2xl border-l-[6px] border-l-emerald-600 border-y border-r border-slate-200/80 p-4.5 shadow-3xs space-y-4">
+          <h3 className="text-xs font-black text-slate-900 flex items-center gap-2 font-sans">
+            <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg shrink-0">
+              <Hammer className="w-4 h-4 stroke-[2.2]" />
             </div>
             <span>Field Bench Practical Test</span>
           </h3>
@@ -492,10 +492,10 @@ export default function CandidateDetail({
         </div>
 
         {/* Remarks & Signatures */}
-        <div className="bg-white rounded-2xl border border-slate-100 p-4.5 shadow-3xs space-y-4">
-          <h3 className="text-xs font-bold text-slate-800 flex items-center gap-2 font-sans">
-            <div className="p-1.5 bg-slate-50 text-slate-600 rounded-lg">
-              <UserCheck className="w-4 h-4" />
+        <div className="bg-white rounded-2xl border-l-[6px] border-l-slate-700 border-y border-r border-slate-200/80 p-4.5 shadow-3xs space-y-4">
+          <h3 className="text-xs font-black text-slate-900 flex items-center gap-2 font-sans">
+            <div className="p-1.5 bg-slate-100 text-slate-700 rounded-lg">
+              <UserCheck className="w-4 h-4 stroke-[2.2]" />
             </div>
             <span>Assessor Final Remarks</span>
           </h3>
