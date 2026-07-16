@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, query, where, writeBatch } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
 import { exportToExcel, calculateOverallScore, getStatusBadgeClass, getStatusColor } from "../utils";
@@ -7,7 +7,7 @@ import {
   ArrowLeft, LogOut, UserPlus, Trash2, Database, ShieldAlert, CheckCircle, 
   Mail, Key, User, Shield, Info, Signal, Wifi, Battery, Landmark, UserCheck,
   Search, Filter, Download, LayoutDashboard, Users, CheckCircle2, XCircle, 
-  AlertCircle, TrendingUp, BarChart3, HelpCircle, Eye, RefreshCw
+  AlertCircle, TrendingUp, BarChart3, HelpCircle, Eye, RefreshCw, Sun, Moon
 } from "lucide-react";
 import { UserProfile, Candidate, POSITIONS } from "../types";
 import SankenLogo from "./SankenLogo";
@@ -15,6 +15,13 @@ import SankenLogo from "./SankenLogo";
 export default function AdminPage() {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Dark mode option - default is true
+  const [darkMode, setDarkMode] = useState<boolean>(true);
+
+  const toggleDarkMode = () => {
+    // Locked to dark mode
+  };
   
   // Form states
   const [newEmail, setNewEmail] = useState("");
@@ -348,6 +355,28 @@ export default function AdminPage() {
     }
   };
 
+  const handleClearAllData = async () => {
+    if (window.confirm("Are you sure you want to delete all candidate assessments? This cannot be undone.")) {
+      try {
+        setLoading(true);
+        const snapshot = await getDocs(collection(db, "candidates"));
+        const batch = writeBatch(db);
+        snapshot.forEach((d) => {
+          batch.delete(d.ref);
+        });
+        await batch.commit();
+        setSuccessMsg("All candidate assessments successfully deleted!");
+        setErrorMsg("");
+      } catch (err) {
+        console.error("Clear database error:", err);
+        setErrorMsg("Failed to clear candidate assessments.");
+        setSuccessMsg("");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   // Stats Calculations
   const totalCount = candidates.length;
   const selectedCount = candidates.filter((c) => c.status === "Selected").length;
@@ -417,7 +446,9 @@ export default function AdminPage() {
   );
 
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-br from-sky-400 via-sky-200 to-blue-300 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none relative overflow-hidden">
+    <div className={`min-h-[100dvh] flex items-center justify-center p-0 sm:p-5 md:p-8 select-none relative overflow-hidden transition-colors duration-300 ${
+      darkMode ? "bg-slate-950 text-slate-100" : "bg-gradient-to-br from-sky-400 via-sky-200 to-blue-300 text-slate-950"
+    }`}>
       {/* Decorative branding floating elements */}
       <div className="absolute -left-12 -top-12 opacity-15 pointer-events-none">
         <SankenLogo className="w-64 h-64" />
@@ -426,15 +457,23 @@ export default function AdminPage() {
         <SankenLogo className="w-64 h-64" />
       </div>
 
-      <div className="w-full h-[100dvh] md:w-full md:max-w-6xl md:h-[85vh] md:rounded-[32px] bg-sky-950 md:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden md:border-[10px] md:border-sky-900 relative z-10">
+      <div className={`w-full h-[100dvh] md:w-full md:max-w-6xl md:h-[85vh] md:rounded-[32px] flex flex-col overflow-hidden relative z-10 transition-colors duration-300 ${
+        darkMode 
+          ? "bg-slate-900 md:border-[10px] md:border-slate-800 md:shadow-2xl" 
+          : "bg-sky-950 md:border-[10px] md:border-sky-900 md:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)]"
+      }`}>
         
         {/* Notch */}
-        <div className="hidden sm:block md:hidden absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-sky-900 rounded-b-2xl z-50">
-          <div className="w-14 h-1 bg-sky-950 rounded-full mx-auto mt-1.5"></div>
+        <div className={`hidden sm:block md:hidden absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 rounded-b-2xl z-50 ${
+          darkMode ? "bg-slate-800" : "bg-sky-900"
+        }`}>
+          <div className={`w-14 h-1 rounded-full mx-auto mt-1.5 ${darkMode ? "bg-slate-900" : "bg-sky-950"}`}></div>
         </div>
 
         {/* Status bar */}
-        <div className="bg-[#1e88e5] text-white px-6 pt-2 pb-1.5 hidden sm:flex md:hidden items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
+        <div className={`text-white px-6 pt-2 pb-1.5 hidden sm:flex md:hidden items-center justify-between text-[10px] font-bold tracking-tight shrink-0 ${
+          darkMode ? "bg-slate-900/80 border-b border-slate-800" : "bg-[#1e88e5]"
+        }`}>
           <span className="font-semibold">{currentTime || "9:41 AM"}</span>
           <div className="flex items-center space-x-1.5">
             <Signal className="w-3.5 h-3.5 text-white" />
@@ -444,42 +483,57 @@ export default function AdminPage() {
         </div>
 
         {/* Header Block */}
-        <div className="bg-white border-b border-slate-100 px-4 py-3 md:px-6 shrink-0 flex items-center justify-between">
+        <div className={`border-b px-4 py-3 md:px-6 shrink-0 flex items-center justify-between transition-colors ${
+          darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100"
+        }`}>
           <button 
             onClick={() => navigate("/")}
-            className="p-1.5 hover:bg-slate-50 active:scale-95 text-slate-700 rounded-lg transition-all cursor-pointer flex items-center gap-1 text-2xs font-bold"
+            className={`p-1.5 active:scale-95 rounded-lg transition-all cursor-pointer flex items-center gap-1 text-2xs font-bold ${
+              darkMode ? "hover:bg-slate-800 text-slate-300" : "hover:bg-slate-50 text-slate-700"
+            }`}
           >
             <ArrowLeft className="w-4 h-4" />
             <span>App</span>
           </button>
           
           <div className="text-center">
-            <h1 className="text-xs font-black text-slate-900 tracking-tight flex items-center gap-1.5 justify-center md:text-sm">
+            <h1 className={`text-xs font-black tracking-tight flex items-center gap-1.5 justify-center md:text-sm ${
+              darkMode ? "text-slate-100" : "text-slate-900"
+            }`}>
               <SankenLogo className="w-4 h-4" />
               Sanken Admin
             </h1>
-            <p className="text-[9px] text-[#2ea1e5] font-black uppercase tracking-wider leading-none mt-0.5">Control Center</p>
+            <p className={`text-[9px] font-black uppercase tracking-wider leading-none mt-0.5 ${
+              darkMode ? "text-sky-400" : "text-[#1e88e5]"
+            }`}>Control Center</p>
           </div>
 
-          <button 
-            onClick={() => {
-              auth.signOut();
-              navigate("/login");
-            }}
-            className="p-1.5 hover:bg-rose-50 active:scale-95 text-rose-600 rounded-lg transition-all cursor-pointer flex items-center gap-1 text-2xs font-bold"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button 
+              onClick={() => {
+                auth.signOut();
+                navigate("/login");
+              }}
+              className={`p-1.5 active:scale-95 rounded-lg transition-all cursor-pointer flex items-center gap-1 text-2xs font-bold ${
+                darkMode ? "hover:bg-rose-950/45 text-rose-400" : "hover:bg-rose-50 text-rose-600"
+              }`}
+              title="Sign Out"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Tab Controls */}
-        <div className="bg-white border-b border-slate-100 px-4 md:px-6 shrink-0 flex items-center gap-4">
+        <div className={`border-b px-4 md:px-6 shrink-0 flex items-center gap-4 transition-colors ${
+          darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100"
+        }`}>
           <button
             onClick={() => setActiveTab("dashboard")}
             className={`py-3 px-2 border-b-2 text-2xs font-extrabold tracking-tight transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === "dashboard"
-                ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600"
+                ? darkMode ? "border-sky-400 text-sky-400" : "border-slate-900 text-slate-900"
+                : darkMode ? "border-transparent text-slate-500 hover:text-slate-300" : "border-transparent text-slate-400 hover:text-slate-600"
             }`}
           >
             <LayoutDashboard className="w-4 h-4" />
@@ -490,8 +544,8 @@ export default function AdminPage() {
             onClick={() => setActiveTab("accounts")}
             className={`py-3 px-2 border-b-2 text-2xs font-extrabold tracking-tight transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === "accounts"
-                ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600"
+                ? darkMode ? "border-sky-400 text-sky-400" : "border-slate-900 text-slate-900"
+                : darkMode ? "border-transparent text-slate-500 hover:text-slate-300" : "border-transparent text-slate-400 hover:text-slate-600"
             }`}
           >
             <Shield className="w-4 h-4" />
@@ -500,7 +554,9 @@ export default function AdminPage() {
         </div>
 
         {/* Content Console */}
-        <div className="flex-1 bg-slate-50 overflow-y-auto custom-scrollbar p-4 md:p-6">
+        <div className={`flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 transition-colors duration-300 ${
+          darkMode ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"
+        }`}>
           
           {activeTab === "dashboard" && (
             <div className="space-y-6">
@@ -508,41 +564,49 @@ export default function AdminPage() {
               {/* Dashboard stats panel */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {/* Total Candidates Card */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-3 flex items-center gap-3 shadow-3xs hover:border-slate-200 transition-all">
-                  <div className="p-2.5 bg-slate-100 text-slate-700 rounded-xl">
+                <div className={`rounded-2xl border p-3 flex items-center gap-3 shadow-3xs hover:border-slate-200 transition-all ${
+                  darkMode ? "bg-slate-900 border-slate-800/80 text-slate-100 hover:bg-slate-850" : "bg-white border-slate-100 text-slate-900"
+                }`}>
+                  <div className={`p-2.5 rounded-xl ${darkMode ? "bg-slate-800 text-slate-300" : "bg-slate-100 text-slate-700"}`}>
                     <Users className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider leading-none">Total Candidates</p>
-                    <p className="text-lg font-black text-slate-900 mt-1 font-mono">{totalCount}</p>
+                    <p className={`text-lg font-black mt-1 font-mono ${darkMode ? "text-slate-100" : "text-slate-900"}`}>{totalCount}</p>
                   </div>
                 </div>
 
                 {/* Selected Card */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-3 flex items-center gap-3 shadow-3xs hover:border-slate-200 transition-all">
-                  <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+                <div className={`rounded-2xl border p-3 flex items-center gap-3 shadow-3xs hover:border-slate-200 transition-all ${
+                  darkMode ? "bg-slate-900 border-slate-800/80 hover:bg-slate-850" : "bg-white border-slate-100"
+                }`}>
+                  <div className={`p-2.5 rounded-xl ${darkMode ? "bg-emerald-950/40 text-emerald-400" : "bg-emerald-50 text-emerald-600"}`}>
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider leading-none">Passed & Selected</p>
-                    <p className="text-lg font-black text-emerald-600 mt-1 font-mono">{selectedCount}</p>
+                    <p className="text-lg font-black text-emerald-500 mt-1 font-mono">{selectedCount}</p>
                   </div>
                 </div>
 
                 {/* Pending Practical Card */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-3 flex items-center gap-3 shadow-3xs hover:border-slate-200 transition-all">
-                  <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                <div className={`rounded-2xl border p-3 flex items-center gap-3 shadow-3xs hover:border-slate-200 transition-all ${
+                  darkMode ? "bg-slate-900 border-slate-800/80 hover:bg-slate-850" : "bg-white border-slate-100"
+                }`}>
+                  <div className={`p-2.5 rounded-xl ${darkMode ? "bg-blue-950/40 text-blue-400" : "bg-blue-50 text-blue-600"}`}>
                     <AlertCircle className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider leading-none">Pending Practical</p>
-                    <p className="text-lg font-black text-blue-600 mt-1 font-mono">{pendingCount}</p>
+                    <p className="text-lg font-black text-blue-400 mt-1 font-mono">{pendingCount}</p>
                   </div>
                 </div>
 
                 {/* On Hold Card */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-3 flex items-center gap-3 shadow-3xs hover:border-slate-200 transition-all">
-                  <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl">
+                <div className={`rounded-2xl border p-3 flex items-center gap-3 shadow-3xs hover:border-slate-200 transition-all ${
+                  darkMode ? "bg-slate-900 border-slate-800/80 hover:bg-slate-850" : "bg-white border-slate-100"
+                }`}>
+                  <div className={`p-2.5 rounded-xl ${darkMode ? "bg-amber-950/40 text-amber-400" : "bg-amber-50 text-amber-600"}`}>
                     <HelpCircle className="w-5 h-5" />
                   </div>
                   <div>
@@ -552,13 +616,15 @@ export default function AdminPage() {
                 </div>
 
                 {/* Rejected Card */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-3 flex items-center gap-3 shadow-3xs hover:border-slate-200 transition-all col-span-2 md:col-span-1">
-                  <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl">
+                <div className={`rounded-2xl border p-3 flex items-center gap-3 shadow-3xs hover:border-slate-200 transition-all col-span-2 md:col-span-1 ${
+                  darkMode ? "bg-slate-900 border-slate-800/80 hover:bg-slate-850" : "bg-white border-slate-100"
+                }`}>
+                  <div className={`p-2.5 rounded-xl ${darkMode ? "bg-rose-950/40 text-rose-400" : "bg-rose-50 text-rose-600"}`}>
                     <XCircle className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider leading-none">Rejected</p>
-                    <p className="text-lg font-black text-rose-600 mt-1 font-mono">{rejectedCount}</p>
+                    <p className="text-lg font-black text-rose-500 mt-1 font-mono">{rejectedCount}</p>
                   </div>
                 </div>
               </div>
@@ -566,10 +632,12 @@ export default function AdminPage() {
               {/* Trade Analysis Bento Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Trade distribution */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-3xs">
-                  <div className="flex items-center gap-2 mb-3 border-b border-slate-50 pb-2">
-                    <BarChart3 className="w-4 h-4 text-slate-700" />
-                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Candidate Trade Distribution</h4>
+                <div className={`rounded-2xl border p-4 shadow-3xs transition-colors ${
+                  darkMode ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-slate-100 text-slate-900"
+                }`}>
+                  <div className={`flex items-center gap-2 mb-3 border-b pb-2 ${darkMode ? "border-slate-850" : "border-slate-50"}`}>
+                    <BarChart3 className="w-4 h-4 text-slate-400" />
+                    <h4 className="text-xs font-black uppercase tracking-wider">Candidate Trade Distribution</h4>
                   </div>
                   <div className="space-y-2.5">
                     {POSITIONS.map((pos, index) => {
@@ -583,11 +651,11 @@ export default function AdminPage() {
                       const color = colors[index % colors.length];
                       return (
                         <div key={pos.id} className="space-y-1">
-                          <div className="flex justify-between text-[11px] font-bold text-slate-700">
-                            <span>{pos.title}</span>
+                          <div className="flex justify-between text-[11px] font-bold">
+                            <span className={darkMode ? "text-slate-300" : "text-slate-700"}>{pos.title}</span>
                             <span className="font-mono text-slate-500">{count} candidates ({pct}%)</span>
                           </div>
-                          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                          <div className={`w-full h-2 rounded-full overflow-hidden ${darkMode ? "bg-slate-800" : "bg-slate-100"}`}>
                             <div className={`${color} h-2 rounded-full transition-all duration-500`} style={{ width: `${pct}%` }}></div>
                           </div>
                         </div>
@@ -597,34 +665,40 @@ export default function AdminPage() {
                 </div>
 
                 {/* KPI/Average Scores */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-3xs flex flex-col justify-between">
+                <div className={`rounded-2xl border p-4 shadow-3xs flex flex-col justify-between transition-colors ${
+                  darkMode ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-slate-100 text-slate-900"
+                }`}>
                   <div>
-                    <div className="flex items-center gap-2 mb-3 border-b border-slate-50 pb-2">
-                      <TrendingUp className="w-4 h-4 text-slate-700" />
-                      <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Key Performance Metrics</h4>
+                    <div className={`flex items-center gap-2 mb-3 border-b pb-2 ${darkMode ? "border-slate-850" : "border-slate-50"}`}>
+                      <TrendingUp className="w-4 h-4 text-slate-400" />
+                      <h4 className="text-xs font-black uppercase tracking-wider">Key Performance Metrics</h4>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-center mt-2">
-                      <div className="p-3 bg-slate-50 rounded-xl">
+                      <div className={`p-3 rounded-xl ${darkMode ? "bg-slate-800/45" : "bg-slate-50"}`}>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Overall Pass Rate</p>
-                        <p className="text-xl font-black text-emerald-600 font-mono mt-1">{passRate}%</p>
-                        <p className="text-[8px] text-slate-400 font-semibold mt-1">Ratio of status "Selected"</p>
+                        <p className="text-xl font-black text-emerald-500 font-mono mt-1">{passRate}%</p>
+                        <p className="text-[8px] text-slate-500 font-semibold mt-1">Ratio of status "Selected"</p>
                       </div>
 
-                      <div className="p-3 bg-slate-50 rounded-xl">
+                      <div className={`p-3 rounded-xl ${darkMode ? "bg-slate-800/45" : "bg-slate-50"}`}>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Practical Required</p>
-                        <p className="text-xl font-black text-blue-600 font-mono mt-1">
+                        <p className="text-xl font-black text-blue-400 font-mono mt-1">
                           {candidates.filter(c => c.practicalTestRequired).length}
                         </p>
-                        <p className="text-[8px] text-slate-400 font-semibold mt-1">Requires hands-on test</p>
+                        <p className="text-[8px] text-slate-500 font-semibold mt-1">Requires hands-on test</p>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="bg-slate-900 text-slate-100 p-2.5 rounded-xl flex items-center justify-between text-[10px] mt-3 font-semibold">
+                  <div className={`p-2.5 rounded-xl flex items-center justify-between text-[10px] mt-3 font-semibold ${
+                    darkMode ? "bg-slate-800 text-slate-200" : "bg-slate-900 text-slate-100"
+                  }`}>
                     <span>Export ready standard Excel file.</span>
                     <button 
                       onClick={() => exportToExcel(candidates, "Sanken_Full_Assessments_Backup")}
-                      className="px-2 py-1 bg-white hover:bg-slate-100 text-slate-900 rounded font-black tracking-tight text-3xs cursor-pointer flex items-center gap-1 shrink-0"
+                      className={`px-2 py-1 rounded font-black tracking-tight text-3xs cursor-pointer flex items-center gap-1 shrink-0 ${
+                        darkMode ? "bg-slate-700 hover:bg-slate-600 text-white" : "bg-white hover:bg-slate-100 text-slate-900"
+                      }`}
                     >
                       <Download className="w-2.5 h-2.5" />
                       Full Excel Export
@@ -634,15 +708,17 @@ export default function AdminPage() {
               </div>
 
               {/* Filter controls */}
-              <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-3 shadow-3xs">
-                <div className="flex items-center gap-2 text-slate-800 font-extrabold text-xs">
-                  <Filter className="w-4 h-4 text-slate-700" />
+              <div className={`rounded-2xl border p-4 space-y-3 shadow-3xs transition-colors ${
+                darkMode ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-slate-100 text-slate-900"
+              }`}>
+                <div className="flex items-center gap-2 font-extrabold text-xs">
+                  <Filter className="w-4 h-4 text-slate-400" />
                   <span>Interactive Search & Filters</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                   {/* Search Query */}
                   <div>
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-wider mb-1">Search Candidates</label>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Search Candidates</label>
                     <div className="relative">
                       <Search className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-slate-400" />
                       <input
@@ -650,92 +726,116 @@ export default function AdminPage() {
                         placeholder="Name, ID, Passport..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-2.5 py-1.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                        className={`w-full pl-8 pr-2.5 py-1.5 border rounded-xl text-xs focus:outline-none focus:ring-1 font-semibold ${
+                          darkMode 
+                            ? "bg-slate-850 border-slate-700 text-slate-100 focus:ring-sky-400" 
+                            : "bg-white border-slate-200 text-slate-800 focus:ring-slate-900"
+                        }`}
                       />
                     </div>
                   </div>
 
                   {/* Trade / Position Filter */}
                   <div>
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-wider mb-1">Trade / Position</label>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Trade / Position</label>
                     <select
                       value={filterPosition}
                       onChange={(e) => setFilterPosition(e.target.value)}
-                      className="w-full px-2 py-1.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                      className={`w-full px-2 py-1.5 border rounded-xl text-xs focus:outline-none focus:ring-1 font-semibold ${
+                        darkMode 
+                          ? "bg-slate-850 border-slate-700 text-slate-100 focus:ring-sky-400" 
+                          : "bg-white border-slate-200 text-slate-800 focus:ring-slate-900"
+                      }`}
                     >
-                      <option value="all">All Trades</option>
+                      <option value="all" className={darkMode ? "bg-slate-850" : ""}>All Trades</option>
                       {POSITIONS.map((pos) => (
-                        <option key={pos.id} value={pos.id}>{pos.title}</option>
+                        <option key={pos.id} value={pos.id} className={darkMode ? "bg-slate-850" : ""}>{pos.title}</option>
                       ))}
                     </select>
                   </div>
 
                   {/* Project Filter */}
                   <div>
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-wider mb-1">Project Name</label>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Project Name</label>
                     <select
                       value={filterProject}
                       onChange={(e) => setFilterProject(e.target.value)}
-                      className="w-full px-2 py-1.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                      className={`w-full px-2 py-1.5 border rounded-xl text-xs focus:outline-none focus:ring-1 font-semibold ${
+                        darkMode 
+                          ? "bg-slate-850 border-slate-700 text-slate-100 focus:ring-sky-400" 
+                          : "bg-white border-slate-200 text-slate-800 focus:ring-slate-900"
+                      }`}
                     >
-                      <option value="all">All Projects</option>
+                      <option value="all" className={darkMode ? "bg-slate-850" : ""}>All Projects</option>
                       {uniqueProjects.map(proj => (
-                        <option key={proj} value={proj}>{proj}</option>
+                        <option key={proj} value={proj} className={darkMode ? "bg-slate-850" : ""}>{proj}</option>
                       ))}
                     </select>
                   </div>
 
                   {/* Requirement Company Filter */}
                   <div>
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-wider mb-1">Req. Company</label>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Req. Company</label>
                     <select
                       value={filterCompany}
                       onChange={(e) => setFilterCompany(e.target.value)}
-                      className="w-full px-2 py-1.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                      className={`w-full px-2 py-1.5 border rounded-xl text-xs focus:outline-none focus:ring-1 font-semibold ${
+                        darkMode 
+                          ? "bg-slate-850 border-slate-700 text-slate-100 focus:ring-sky-400" 
+                          : "bg-white border-slate-200 text-slate-800 focus:ring-slate-900"
+                      }`}
                     >
-                      <option value="all">All Companies</option>
+                      <option value="all" className={darkMode ? "bg-slate-850" : ""}>All Companies</option>
                       {uniqueCompanies.map(comp => (
-                        <option key={comp} value={comp}>{comp}</option>
+                        <option key={comp} value={comp} className={darkMode ? "bg-slate-850" : ""}>{comp}</option>
                       ))}
                     </select>
                   </div>
 
                   {/* Status / Final Result Filter */}
                   <div>
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-wider mb-1">Final Result / Status</label>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Final Result / Status</label>
                     <select
                       value={filterStatus}
                       onChange={(e) => setFilterStatus(e.target.value)}
-                      className="w-full px-2 py-1.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                      className={`w-full px-2 py-1.5 border rounded-xl text-xs focus:outline-none focus:ring-1 font-semibold ${
+                        darkMode 
+                          ? "bg-slate-850 border-slate-700 text-slate-100 focus:ring-sky-400" 
+                          : "bg-white border-slate-200 text-slate-800 focus:ring-slate-900"
+                      }`}
                     >
-                      <option value="all">All Results</option>
-                      <option value="Selected">Selected (Passed)</option>
-                      <option value="Pending Practical">Pending Practical</option>
-                      <option value="On Hold">On Hold</option>
-                      <option value="Rejected">Rejected</option>
-                      <option value="Draft">Draft</option>
+                      <option value="all" className={darkMode ? "bg-slate-850" : ""}>All Results</option>
+                      <option value="Selected" className={darkMode ? "bg-slate-850" : ""}>Selected (Passed)</option>
+                      <option value="Pending Practical" className={darkMode ? "bg-slate-850" : ""}>Pending Practical</option>
+                      <option value="On Hold" className={darkMode ? "bg-slate-850" : ""}>On Hold</option>
+                      <option value="Rejected" className={darkMode ? "bg-slate-850" : ""}>Rejected</option>
+                      <option value="Draft" className={darkMode ? "bg-slate-850" : ""}>Draft</option>
                     </select>
                   </div>
 
                   {/* Practical Test required Filter */}
                   <div>
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-wider mb-1">Practical Test</label>
+                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-wider mb-1">Practical Test</label>
                     <select
                       value={filterPractical}
                       onChange={(e) => setFilterPractical(e.target.value)}
-                      className="w-full px-2 py-1.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                      className={`w-full px-2 py-1.5 border rounded-xl text-xs focus:outline-none focus:ring-1 font-semibold ${
+                        darkMode 
+                          ? "bg-slate-850 border-slate-700 text-slate-100 focus:ring-sky-400" 
+                          : "bg-white border-slate-200 text-slate-800 focus:ring-slate-900"
+                      }`}
                     >
-                      <option value="all">All Settings</option>
-                      <option value="true">Test Required</option>
-                      <option value="false">Test Not Required</option>
+                      <option value="all" className={darkMode ? "bg-slate-850" : ""}>All Settings</option>
+                      <option value="true" className={darkMode ? "bg-slate-850" : ""}>Test Required</option>
+                      <option value="false" className={darkMode ? "bg-slate-850" : ""}>Test Not Required</option>
                     </select>
                   </div>
                 </div>
 
                 {/* Reset Filters button and Download buttons */}
-                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-50 pt-3">
-                  <div className="text-[10px] text-slate-500 font-semibold">
-                    Showing <span className="font-extrabold text-slate-800">{filteredCandidates.length}</span> of <span className="font-extrabold text-slate-800">{candidates.length}</span> candidate records
+                <div className={`flex flex-wrap items-center justify-between gap-2 border-t pt-3 ${darkMode ? "border-slate-800" : "border-slate-50"}`}>
+                  <div className={`text-[10px] font-semibold ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                    Showing <span className={`font-extrabold ${darkMode ? "text-sky-400" : "text-slate-800"}`}>{filteredCandidates.length}</span> of <span className={`font-extrabold ${darkMode ? "text-sky-400" : "text-slate-800"}`}>{candidates.length}</span> candidate records
                   </div>
                   
                   <div className="flex items-center gap-2">
@@ -748,7 +848,11 @@ export default function AdminPage() {
                         setFilterPractical("all");
                         setFilterCompany("all");
                       }}
-                      className="px-3 py-1.5 text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg text-2xs font-extrabold transition-all cursor-pointer flex items-center gap-1"
+                      className={`px-3 py-1.5 rounded-lg text-2xs font-extrabold transition-all cursor-pointer flex items-center gap-1 ${
+                        darkMode 
+                          ? "text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700" 
+                          : "text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200"
+                      }`}
                     >
                       <RefreshCw className="w-3 h-3" />
                       Reset Filters
@@ -767,9 +871,13 @@ export default function AdminPage() {
               </div>
 
               {/* Candidates Records Table */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-3xs overflow-hidden">
-                <div className="px-4 py-3 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
-                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Candidate Assessments Database</h3>
+              <div className={`rounded-2xl border shadow-3xs overflow-hidden transition-colors ${
+                darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100"
+              }`}>
+                <div className={`px-4 py-3 border-b flex items-center justify-between transition-colors ${
+                  darkMode ? "border-slate-800 bg-slate-800/30" : "border-slate-50 bg-slate-50/50"
+                }`}>
+                  <h3 className={`text-xs font-black uppercase tracking-wider ${darkMode ? "text-slate-200" : "text-slate-800"}`}>Candidate Assessments Database</h3>
                   <div className="text-[9px] text-slate-400 font-mono">Real-time sync active</div>
                 </div>
 
@@ -787,7 +895,9 @@ export default function AdminPage() {
                   <div className="w-full overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse text-[10px]">
                       <thead>
-                        <tr className="bg-slate-900 text-white font-extrabold uppercase tracking-wider text-[9px]">
+                        <tr className={`font-extrabold uppercase tracking-wider text-[9px] ${
+                          darkMode ? "bg-slate-950 text-slate-300" : "bg-slate-900 text-white"
+                        }`}>
                           <th className="px-2 py-1.5 text-center whitespace-nowrap">#</th>
                           <th className="px-2 py-1.5 whitespace-nowrap">Photo</th>
                           <th className="px-2 py-1.5 whitespace-nowrap">Candidate Name</th>
@@ -814,9 +924,13 @@ export default function AdminPage() {
                           else if (c.positionId === "mason") tradeLabel = "Mason";
 
                           return (
-                            <tr key={c.id} className="hover:bg-slate-50 transition-all font-semibold text-slate-700">
+                            <tr key={c.id} className={`transition-all font-semibold border-b ${
+                              darkMode ? "hover:bg-slate-800/40 text-slate-300 border-slate-800/50" : "hover:bg-slate-50 text-slate-700 border-slate-100"
+                            }`}>
                               {/* Serial number */}
-                              <td className="px-2 py-1.5 text-center font-mono text-slate-400 text-[9px] font-bold border-r border-slate-50 bg-slate-50/30 whitespace-nowrap">
+                              <td className={`px-2 py-1.5 text-center font-mono text-slate-400 text-[9px] font-bold border-r whitespace-nowrap ${
+                                darkMode ? "border-slate-850 bg-slate-900/40" : "border-slate-50 bg-slate-50/30"
+                              }`}>
                                 {index + 1}
                               </td>
 
@@ -830,52 +944,56 @@ export default function AdminPage() {
                                     className="w-7 h-7 rounded-full object-cover border border-slate-200 bg-slate-100 shadow-3xs" 
                                   />
                                 ) : (
-                                  <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center font-bold text-[9px] shadow-3xs">
+                                  <div className={`w-7 h-7 rounded-full text-slate-400 flex items-center justify-center font-bold text-[9px] shadow-3xs border ${
+                                    darkMode ? "bg-slate-800 border-slate-700" : "bg-slate-100 border-slate-200"
+                                  }`}>
                                     {c.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
                                   </div>
                                 )}
                               </td>
 
                               {/* Name */}
-                              <td className="px-2 py-1.5 font-extrabold text-slate-900 whitespace-nowrap">
+                              <td className={`px-2 py-1.5 font-extrabold whitespace-nowrap ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                                 <div className="leading-tight text-[11px]">{c.name}</div>
                                 <div className="text-[9px] text-slate-400 font-mono mt-0.5">{c.referenceId}</div>
                               </td>
 
                               {/* NIC */}
-                              <td className="px-2 py-1.5 font-mono text-slate-500 text-[10px] whitespace-nowrap">
+                              <td className="px-2 py-1.5 font-mono text-slate-400 text-[10px] whitespace-nowrap">
                                 {c.nicNumber || "—"}
                               </td>
 
                               {/* Passport */}
-                              <td className="px-2 py-1.5 font-mono text-slate-500 text-[10px] whitespace-nowrap">
+                              <td className="px-2 py-1.5 font-mono text-slate-400 text-[10px] whitespace-nowrap">
                                 {c.passportNumber || "—"}
                               </td>
 
                               {/* Position */}
                               <td className="px-2 py-1.5 whitespace-nowrap">
-                                <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[9px] border border-slate-200/50 whitespace-nowrap font-medium">
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] border whitespace-nowrap font-medium ${
+                                  darkMode ? "bg-slate-800 text-slate-300 border-slate-750" : "bg-slate-100 text-slate-700 border-slate-200/50"
+                                }`}>
                                   {tradeLabel}
                                 </span>
                               </td>
 
                               {/* Project */}
-                              <td className="px-2 py-1.5 text-slate-600 font-bold text-[10px] whitespace-nowrap">
+                              <td className={`px-2 py-1.5 font-bold text-[10px] whitespace-nowrap ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
                                 {c.projectName || "Default Project"}
                               </td>
 
                               {/* Requirement Company */}
-                              <td className="px-2 py-1.5 text-slate-600 text-[10px] whitespace-nowrap">
+                              <td className={`px-2 py-1.5 text-[10px] whitespace-nowrap ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
                                 {c.requirementCompany || "—"}
                               </td>
 
                               {/* Assessor / Engineer */}
-                              <td className="px-2 py-1.5 font-bold text-slate-800 text-[10px] whitespace-nowrap">
+                              <td className={`px-2 py-1.5 font-bold text-[10px] whitespace-nowrap ${darkMode ? "text-slate-200" : "text-slate-800"}`}>
                                 {c.assessor || "—"}
                               </td>
 
                               {/* Date */}
-                              <td className="px-2 py-1.5 font-mono text-slate-500 text-[9px] whitespace-nowrap">
+                              <td className="px-2 py-1.5 font-mono text-slate-400 text-[9px] whitespace-nowrap">
                                 {c.date}
                               </td>
 
@@ -884,19 +1002,21 @@ export default function AdminPage() {
                                 <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider whitespace-nowrap ${
                                   c.practicalTestRequired 
                                     ? "bg-amber-100 text-amber-700 border border-amber-200" 
-                                    : "bg-slate-100 text-slate-500 border border-slate-200"
+                                    : darkMode 
+                                      ? "bg-slate-800 text-slate-400 border border-slate-700"
+                                      : "bg-slate-100 text-slate-500 border border-slate-200"
                                 }`}>
                                   {c.practicalTestRequired ? "YES" : "NO"}
                                 </span>
                               </td>
 
                               {/* Result / Score */}
-                              <td className="px-2 py-1.5 text-right border-l border-slate-50 whitespace-nowrap">
+                              <td className={`px-2 py-1.5 text-right whitespace-nowrap border-l ${darkMode ? "border-slate-800" : "border-slate-5"}`}>
                                 <div className="flex flex-col items-end leading-none">
                                   <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider text-center w-fit whitespace-nowrap ${getStatusBadgeClass(c.status)}`}>
                                     {c.status}
                                   </span>
-                                  <span className="text-[9px] font-extrabold text-slate-900 mt-1 font-mono block">
+                                  <span className={`text-[9px] font-extrabold mt-1 font-mono block ${darkMode ? "text-slate-100" : "text-slate-900"}`}>
                                     {overallScore}% Comp.
                                   </span>
                                 </div>
@@ -944,11 +1064,35 @@ export default function AdminPage() {
                   </div>
                 </div>
 
+                {/* Danger Zone Section */}
+                <div className={`rounded-2xl p-4 space-y-3 shadow-sm border transition-colors ${
+                  darkMode 
+                    ? "bg-rose-950/15 border-rose-900/40 text-rose-200" 
+                    : "bg-rose-50 border-rose-100 text-rose-950"
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <Trash2 className="w-4 h-4 text-rose-500" />
+                    <h2 className="text-xs font-black tracking-tight uppercase text-rose-500">Danger Zone</h2>
+                  </div>
+                  <p className={`text-[10px] leading-normal font-medium ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
+                    Irreversibly delete all candidate assessments from the system database. This action cannot be undone.
+                  </p>
+                  <button
+                    onClick={handleClearAllData}
+                    className="w-full py-2 bg-rose-600 hover:bg-rose-500 active:scale-95 rounded-xl text-2xs font-extrabold tracking-tight transition-all flex items-center justify-center gap-1.5 cursor-pointer text-white shadow-3xs uppercase font-bold"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Clear All Assessments</span>
+                  </button>
+                </div>
+
                 {/* Requirement Companies Management Card */}
-                <div className="bg-white rounded-[20px] border border-slate-100 p-4 space-y-3.5 shadow-3xs">
-                  <div className="flex items-center gap-1.5 border-b border-slate-50 pb-2">
-                    <Landmark className="w-4 h-4 text-slate-800" />
-                    <h2 className="text-xs font-black text-slate-900 tracking-tight">Requirement Companies ({companies.length})</h2>
+                <div className={`rounded-[20px] border p-4 space-y-3.5 shadow-3xs transition-colors ${
+                  darkMode ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-slate-100 text-slate-900"
+                }`}>
+                  <div className={`flex items-center gap-1.5 border-b pb-2 ${darkMode ? "border-slate-850" : "border-slate-50"}`}>
+                    <Landmark className="w-4 h-4 text-slate-400" />
+                    <h2 className={`text-xs font-black tracking-tight ${darkMode ? "text-slate-200" : "text-slate-900"}`}>Requirement Companies ({companies.length})</h2>
                   </div>
 
                   <form onSubmit={handleCreateCompany} className="flex gap-2">
@@ -957,12 +1101,18 @@ export default function AdminPage() {
                       placeholder="Add Company (e.g. Sobha)"
                       value={newCompanyName}
                       onChange={(e) => setNewCompanyName(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                      className={`flex-1 px-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-1 font-semibold ${
+                        darkMode 
+                          ? "bg-slate-850 border-slate-700 text-slate-100 focus:ring-sky-400" 
+                          : "bg-white border-slate-200 text-slate-800 focus:ring-slate-900"
+                      }`}
                       required
                     />
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-2xs font-extrabold tracking-tight cursor-pointer active:scale-95 shadow-3xs whitespace-nowrap"
+                      className={`px-4 py-2 rounded-xl text-2xs font-extrabold tracking-tight cursor-pointer active:scale-95 shadow-3xs whitespace-nowrap transition-colors ${
+                        darkMode ? "bg-sky-600 hover:bg-sky-500 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"
+                      }`}
                     >
                       Add
                     </button>
@@ -975,12 +1125,16 @@ export default function AdminPage() {
                       <p className="text-[10px] text-slate-400 font-bold text-center py-2">No companies added yet.</p>
                     ) : (
                       companies.map((comp) => (
-                        <div key={comp.id} className="bg-slate-50 border border-slate-100 rounded-xl p-2.5 flex items-center justify-between">
-                          <span className="text-2xs font-bold text-slate-800 select-all">{comp.name}</span>
+                        <div key={comp.id} className={`border rounded-xl p-2.5 flex items-center justify-between transition-colors ${
+                          darkMode ? "bg-slate-850 border-slate-800" : "bg-slate-50 border-slate-100"
+                        }`}>
+                          <span className={`text-2xs font-bold select-all ${darkMode ? "text-slate-200" : "text-slate-800"}`}>{comp.name}</span>
                           <button
                             type="button"
                             onClick={() => handleDeleteCompany(comp.id, comp.name)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-90 cursor-pointer shrink-0"
+                            className={`p-1.5 rounded-lg transition-all active:scale-90 cursor-pointer shrink-0 ${
+                              darkMode ? "text-slate-400 hover:text-rose-400 hover:bg-rose-950/40" : "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                            }`}
                             title="Delete Company"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -993,15 +1147,19 @@ export default function AdminPage() {
 
                 {/* Feedback banners */}
                 {successMsg && (
-                  <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 p-3 rounded-xl flex items-start gap-2 text-2xs font-bold">
-                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <div className={`border p-3 rounded-xl flex items-start gap-2 text-2xs font-bold ${
+                    darkMode ? "bg-emerald-950/20 border-emerald-900/45 text-emerald-300" : "bg-emerald-50 border-emerald-100 text-emerald-800"
+                  }`}>
+                    <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                     <span>{successMsg}</span>
                   </div>
                 )}
 
                 {errorMsg && (
-                  <div className="bg-rose-50 border border-rose-100 text-rose-800 p-3 rounded-xl flex items-start gap-2 text-2xs font-bold">
-                    <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <div className={`border p-3 rounded-xl flex items-start gap-2 text-2xs font-bold ${
+                    darkMode ? "bg-rose-950/20 border-rose-900/45 text-rose-300" : "bg-rose-50 border-rose-100 text-rose-800"
+                  }`}>
+                    <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                     <span>{errorMsg}</span>
                   </div>
                 )}
@@ -1009,15 +1167,17 @@ export default function AdminPage() {
 
               {/* Middle Column: Create User Profile */}
               <div className="md:col-span-4">
-                <div className="bg-white rounded-[20px] border border-slate-100 p-4 space-y-3.5 shadow-3xs">
-                  <div className="flex items-center gap-1.5 border-b border-slate-50 pb-2">
-                    <UserPlus className="w-4 h-4 text-slate-800" />
-                    <h2 className="text-xs font-black text-slate-900 tracking-tight">Create User Profile</h2>
+                <div className={`rounded-[20px] border p-4 space-y-3.5 shadow-3xs transition-colors ${
+                  darkMode ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-slate-100 text-slate-900"
+                }`}>
+                  <div className={`flex items-center gap-1.5 border-b pb-2 ${darkMode ? "border-slate-850" : "border-slate-50"}`}>
+                    <UserPlus className="w-4 h-4 text-slate-400" />
+                    <h2 className={`text-xs font-black tracking-tight ${darkMode ? "text-slate-200" : "text-slate-900"}`}>Create User Profile</h2>
                   </div>
 
                   <form onSubmit={handleCreateProfile} className="space-y-3">
                     <div className="space-y-1">
-                      <label className="block text-[10px] font-bold text-slate-700">Email Address</label>
+                      <label className={`block text-[10px] font-bold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Email Address</label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
                         <input
@@ -1025,14 +1185,18 @@ export default function AdminPage() {
                           value={newEmail}
                           onChange={(e) => setNewEmail(e.target.value)}
                           placeholder="user@sankenoverseas.com"
-                          className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                          className={`w-full pl-9 pr-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-1 font-semibold ${
+                            darkMode 
+                              ? "bg-slate-850 border-slate-700 text-slate-100 focus:ring-sky-400" 
+                              : "bg-white border-slate-200 text-slate-800 focus:ring-slate-900"
+                          }`}
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="block text-[10px] font-bold text-slate-700">Password</label>
+                      <label className={`block text-[10px] font-bold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Password</label>
                       <div className="relative">
                         <Key className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
                         <input
@@ -1040,14 +1204,18 @@ export default function AdminPage() {
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           placeholder="Admin assigned password"
-                          className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                          className={`w-full pl-9 pr-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-1 font-semibold ${
+                            darkMode 
+                              ? "bg-slate-850 border-slate-700 text-slate-100 focus:ring-sky-400" 
+                              : "bg-white border-slate-200 text-slate-800 focus:ring-slate-900"
+                          }`}
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="block text-[10px] font-bold text-slate-700">Project Name</label>
+                      <label className={`block text-[10px] font-bold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Project Name</label>
                       <div className="relative">
                         <Landmark className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
                         <input
@@ -1055,14 +1223,18 @@ export default function AdminPage() {
                           value={newProjectName}
                           onChange={(e) => setNewProjectName(e.target.value)}
                           placeholder="e.g. Colombo Mall, Marina Heights"
-                          className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                          className={`w-full pl-9 pr-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-1 font-semibold ${
+                            darkMode 
+                              ? "bg-slate-850 border-slate-700 text-slate-100 focus:ring-sky-400" 
+                              : "bg-white border-slate-200 text-slate-800 focus:ring-slate-900"
+                          }`}
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="block text-[10px] font-bold text-slate-700">Engineer Name</label>
+                      <label className={`block text-[10px] font-bold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Engineer Name</label>
                       <div className="relative">
                         <UserCheck className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
                         <input
@@ -1070,14 +1242,18 @@ export default function AdminPage() {
                           value={newEngineerName}
                           onChange={(e) => setNewEngineerName(e.target.value)}
                           placeholder="e.g. Eng. Ruwan, Eng. Perera"
-                          className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                          className={`w-full pl-9 pr-3 py-2 border rounded-xl text-xs focus:outline-none focus:ring-1 font-semibold ${
+                            darkMode 
+                              ? "bg-slate-850 border-slate-700 text-slate-100 focus:ring-sky-400" 
+                              : "bg-white border-slate-200 text-slate-800 focus:ring-slate-900"
+                          }`}
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="block text-[10px] font-bold text-slate-700">Access Level / Role</label>
+                      <label className={`block text-[10px] font-bold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Access Level / Role</label>
                       <div className="flex gap-2">
                         {["User", "Admin"].map((r) => (
                           <button
@@ -1086,8 +1262,8 @@ export default function AdminPage() {
                             onClick={() => setNewRole(r)}
                             className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
                               newRole === r
-                                ? "bg-slate-900 text-white border-slate-900 shadow-3xs"
-                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                ? darkMode ? "bg-sky-600 text-white border-sky-600 shadow-3xs" : "bg-slate-900 text-white border-slate-900 shadow-3xs"
+                                : darkMode ? "bg-slate-850 text-slate-300 border-slate-700 hover:bg-slate-800" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                             }`}
                           >
                             {r}
@@ -1099,7 +1275,9 @@ export default function AdminPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-2xs font-extrabold tracking-tight transition-all active:scale-95 shadow-3xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-55"
+                      className={`w-full py-2.5 rounded-xl text-2xs font-extrabold tracking-tight transition-all active:scale-95 shadow-3xs flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-55 ${
+                        darkMode ? "bg-sky-600 hover:bg-sky-500 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"
+                      }`}
                     >
                       <UserPlus className="w-3.5 h-3.5" />
                       <span>Save Profile Credentials</span>
@@ -1110,20 +1288,24 @@ export default function AdminPage() {
 
               {/* Right Column: Manage Active Profiles */}
               <div className="md:col-span-4">
-                <div className="bg-white rounded-[20px] border border-slate-100 p-4 space-y-3.5 shadow-3xs">
-                  <div className="flex items-center justify-between border-b border-slate-50 pb-2">
+                <div className={`rounded-[20px] border p-4 space-y-3.5 shadow-3xs transition-colors ${
+                  darkMode ? "bg-slate-900 border-slate-800 text-slate-100" : "bg-white border-slate-100 text-slate-900"
+                }`}>
+                  <div className={`flex items-center justify-between border-b pb-2 ${darkMode ? "border-slate-850" : "border-slate-50"}`}>
                     <div className="flex items-center gap-1.5">
-                      <Shield className="w-4 h-4 text-slate-800" />
-                      <h2 className="text-xs font-black text-slate-900 tracking-tight">Active Accounts ({profiles.length + 1})</h2>
+                      <Shield className="w-4 h-4 text-slate-400" />
+                      <h2 className={`text-xs font-black tracking-tight ${darkMode ? "text-slate-200" : "text-slate-900"}`}>Active Accounts ({profiles.length + 1})</h2>
                     </div>
                   </div>
 
                   <div className="space-y-2 max-h-[350px] overflow-y-auto custom-scrollbar pr-1">
                     {/* Default Admin Card */}
-                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-center justify-between">
+                    <div className={`border rounded-xl p-3 flex items-center justify-between transition-colors ${
+                      darkMode ? "bg-slate-850 border-slate-800" : "bg-slate-50 border-slate-100"
+                    }`}>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-2xs font-black text-slate-800 select-all">admin@sankenoverseas.com</span>
+                          <span className={`text-2xs font-black select-all ${darkMode ? "text-slate-200" : "text-slate-800"}`}>admin@sankenoverseas.com</span>
                           <span className="bg-slate-900 text-white px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider uppercase">System</span>
                         </div>
                         <p className="text-[9px] text-slate-400 font-bold mt-1 font-mono">PWD: SankenAdmin2026!</p>
@@ -1141,25 +1323,29 @@ export default function AdminPage() {
                       </div>
                     ) : (
                       profiles.map((p) => (
-                        <div key={p.id || p.email} className="bg-white border border-slate-100 rounded-xl p-3 flex flex-col gap-1.5 hover:border-slate-200 transition-all shadow-3xs relative group">
+                        <div key={p.id || p.email} className={`border rounded-xl p-3 flex flex-col gap-1.5 hover:border-slate-200 transition-all shadow-3xs relative group transition-colors ${
+                          darkMode ? "bg-slate-850 border-slate-800" : "bg-white border-slate-100"
+                        }`}>
                           <div className="flex items-start justify-between">
                             <div className="space-y-0.5">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="text-2xs font-black text-slate-800 select-all">{p.email}</span>
+                                <span className={`text-2xs font-black select-all ${darkMode ? "text-slate-200" : "text-slate-800"}`}>{p.email}</span>
                                 <span className={`px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider uppercase ${
-                                  p.role === "Admin" ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"
+                                  p.role === "Admin" ? "bg-blue-150 text-blue-400" : "bg-emerald-150 text-emerald-400"
                                 }`}>
                                   {p.role}
                                 </span>
                               </div>
                               {p.engineerName && (
-                                <p className="text-2xs font-extrabold text-slate-700">
+                                <p className={`text-2xs font-extrabold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
                                   {p.engineerName}
                                 </p>
                               )}
                               {p.projectName && (
-                                <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[9px] font-bold mt-1">
-                                  <Landmark className="w-2.5 h-2.5 text-slate-500" />
+                                <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold mt-1 ${
+                                  darkMode ? "bg-slate-800 text-slate-300" : "bg-slate-100 text-slate-600"
+                                }`}>
+                                  <Landmark className="w-2.5 h-2.5 text-slate-400" />
                                   <span>{p.projectName}</span>
                                 </div>
                               )}
@@ -1168,7 +1354,9 @@ export default function AdminPage() {
                             
                             <button
                               onClick={() => handleDeleteProfile(p.id, p.email, p.projectName)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-90 cursor-pointer shrink-0"
+                              className={`p-1.5 rounded-lg transition-all active:scale-90 cursor-pointer shrink-0 ${
+                                darkMode ? "text-slate-400 hover:text-rose-400 hover:bg-rose-950/40" : "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                              }`}
                               title="Delete Profile"
                             >
                               <Trash2 className="w-3.5 h-3.5" />

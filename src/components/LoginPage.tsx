@@ -136,34 +136,34 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-br from-sky-400 via-sky-200 to-blue-300 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none relative overflow-hidden">
+    <div className="min-h-[100dvh] bg-slate-950 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none relative overflow-hidden">
       {/* Dynamic floating background brand mark watermark */}
-      <div className="absolute -left-16 -top-16 opacity-20 pointer-events-none">
+      <div className="absolute -left-16 -top-16 opacity-10 pointer-events-none">
         <SankenLogo className="w-64 h-64" />
       </div>
-      <div className="absolute -right-16 -bottom-16 opacity-20 pointer-events-none">
+      <div className="absolute -right-16 -bottom-16 opacity-10 pointer-events-none">
         <SankenLogo className="w-64 h-64" />
       </div>
 
-      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-sky-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden sm:border-[10px] sm:border-sky-900 relative z-10">
+      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-slate-900 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden sm:border-[10px] sm:border-slate-800 relative z-10">
         
         {/* Notch */}
-        <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-sky-900 rounded-b-2xl z-50">
-          <div className="w-14 h-1 bg-sky-950 rounded-full mx-auto mt-1.5"></div>
+        <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-slate-850 rounded-b-2xl z-50">
+          <div className="w-14 h-1 bg-slate-900 rounded-full mx-auto mt-1.5"></div>
         </div>
 
         {/* Status bar */}
-        <div className="bg-[#1e88e5] text-white px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
-          <span className="font-semibold">9:41 AM</span>
+        <div className="bg-slate-950 text-slate-400 px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0 border-b border-slate-900">
+          <span className="font-semibold text-slate-500">9:41 AM</span>
           <div className="flex items-center space-x-1.5">
-            <Signal className="w-3.5 h-3.5 text-white" />
-            <Wifi className="w-3.5 h-3.5 text-white" />
-            <Battery className="w-4 h-4 text-white" />
+            <Signal className="w-3.5 h-3.5 text-slate-500" />
+            <Wifi className="w-3.5 h-3.5 text-slate-500" />
+            <Battery className="w-4 h-4 text-slate-500" />
           </div>
         </div>
 
         {/* Login Form Content */}
-        <div className="flex-1 bg-slate-50 flex flex-col justify-between overflow-y-auto custom-scrollbar p-6">
+        <div className="flex-1 bg-slate-900 flex flex-col justify-between overflow-y-auto custom-scrollbar p-6">
           <div className="my-auto space-y-6">
             
             {/* Logo/Header */}
@@ -171,7 +171,7 @@ export default function LoginPage() {
               <div className="flex justify-center">
                 <SankenLogo className="w-24 h-14" />
               </div>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-xl font-black text-white tracking-tight">
                 Sanken Overseas
               </h1>
               <p className="text-xs text-[#2ea1e5] font-black uppercase tracking-wider">
@@ -181,7 +181,7 @@ export default function LoginPage() {
 
             {/* Error Message */}
             {error && (
-              <div className="bg-rose-50 border border-rose-100 text-rose-700 p-3.5 rounded-xl flex items-start gap-2 text-xs font-semibold animate-shake">
+              <div className="bg-rose-950/20 border border-rose-900/30 text-rose-400 p-3.5 rounded-xl flex items-start gap-2 text-xs font-semibold animate-shake">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
@@ -191,12 +191,12 @@ export default function LoginPage() {
             {showProjectSelector ? (
               <div className="space-y-4">
                 <div className="text-center space-y-1">
-                  <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto">
-                    <Landmark className="w-5 h-5 text-slate-700" />
+                  <div className="w-10 h-10 bg-slate-950 rounded-full flex items-center justify-center mx-auto border border-slate-800">
+                    <Landmark className="w-5 h-5 text-slate-300" />
                   </div>
-                  <h2 className="text-base font-black text-slate-900 tracking-tight">Select Project</h2>
-                  <p className="text-[10px] text-slate-500 font-semibold leading-tight">
-                    Multiple project accounts found for <span className="font-black text-slate-800">{email}</span>. Please choose:
+                  <h2 className="text-base font-black text-white tracking-tight">Select Project</h2>
+                  <p className="text-[10px] text-slate-400 font-semibold leading-tight">
+                    Multiple project accounts found for <span className="font-black text-slate-200">{email}</span>. Please choose:
                   </p>
                 </div>
 
@@ -206,21 +206,21 @@ export default function LoginPage() {
                       key={p.id}
                       onClick={() => handleSelectProfile(p)}
                       disabled={loading}
-                      className="w-full text-left bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 p-3 rounded-xl transition-all active:scale-98 cursor-pointer flex items-center justify-between group shadow-3xs disabled:opacity-55"
+                      className="w-full text-left bg-slate-950 hover:bg-slate-850/80 border border-slate-800 hover:border-slate-700 p-3 rounded-xl transition-all active:scale-98 cursor-pointer flex items-center justify-between group shadow-3xs disabled:opacity-55"
                     >
                       <div className="space-y-0.5 pr-2">
-                        <p className="text-xs font-black text-slate-800 flex items-center gap-1">
-                          <Landmark className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                        <p className="text-xs font-black text-slate-100 flex items-center gap-1">
+                          <Landmark className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           <span>{p.projectName || "Default Project"}</span>
                         </p>
                         {p.engineerName && (
-                          <p className="text-[10px] text-slate-500 font-bold flex items-center gap-1">
-                            <UserCheck className="w-3 h-3 text-slate-400 shrink-0" />
+                          <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                            <UserCheck className="w-3 h-3 text-slate-500 shrink-0" />
                             <span>{p.engineerName}</span>
                           </p>
                         )}
                       </div>
-                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-colors shrink-0" />
+                      <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-colors shrink-0" />
                     </button>
                   ))}
                 </div>
@@ -231,7 +231,7 @@ export default function LoginPage() {
                     setShowProjectSelector(false);
                     setMatchingProfiles([]);
                   }}
-                  className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer text-center"
+                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer text-center"
                 >
                   Back to Sign In
                 </button>
@@ -239,15 +239,15 @@ export default function LoginPage() {
             ) : (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-700">Email Address</label>
+                  <label className="block text-xs font-bold text-slate-300">Email Address</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                    <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-550" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@sankenoverseas.com"
-                      className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 font-medium transition-all"
+                      className="w-full pl-10 pr-4 py-3 border border-slate-800 rounded-xl text-sm bg-slate-950 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-700 font-medium transition-all"
                       required
                       disabled={loading}
                     />
@@ -255,15 +255,15 @@ export default function LoginPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-700">Password</label>
+                  <label className="block text-xs font-bold text-slate-300">Password</label>
                   <div className="relative">
-                    <Key className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                    <Key className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-550" />
                     <input
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter password"
-                      className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/10 focus:border-[#1e88e5] font-medium transition-all"
+                      className="w-full pl-10 pr-4 py-3 border border-slate-800 rounded-xl text-sm bg-slate-950 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-slate-700 font-medium transition-all"
                       required
                       disabled={loading}
                     />
@@ -273,7 +273,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 bg-gradient-to-r from-[#2ea1e5] to-[#1e88e5] hover:from-[#1e88e5] hover:to-[#1565c0] text-white rounded-xl text-sm font-black tracking-tight transition-all active:scale-95 shadow-md shadow-sky-500/10 flex items-center justify-center cursor-pointer disabled:opacity-55"
+                  className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-black tracking-tight transition-all active:scale-95 shadow-md shadow-blue-900/20 flex items-center justify-center cursor-pointer disabled:opacity-55"
                 >
                   {loading ? "Authenticating..." : "Sign In"}
                 </button>
@@ -281,22 +281,22 @@ export default function LoginPage() {
             )}
 
             {/* Admin Provided Login Guide Block */}
-            <div className="bg-slate-100 border border-slate-200/60 rounded-xl p-4 space-y-2">
-              <div className="flex items-center gap-1.5 text-slate-700 font-bold text-2xs uppercase tracking-wider">
+            <div className="bg-slate-950 border border-slate-850 rounded-xl p-4 space-y-2">
+              <div className="flex items-center gap-1.5 text-slate-300 font-bold text-2xs uppercase tracking-wider">
                 <Info className="w-3.5 h-3.5 text-slate-500" />
                 <span>Default Admin Credentials</span>
               </div>
-              <div className="text-2xs text-slate-600 space-y-1 font-medium">
-                <div className="flex justify-between border-b border-slate-200/40 pb-1">
+              <div className="text-2xs text-slate-400 space-y-1 font-medium">
+                <div className="flex justify-between border-b border-slate-850 pb-1">
                   <span>Username:</span>
-                  <span className="font-bold text-slate-800 select-all font-mono">admin@sankenoverseas.com</span>
+                  <span className="font-bold text-slate-200 select-all font-mono">admin@sankenoverseas.com</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Password:</span>
-                  <span className="font-bold text-slate-800 select-all font-mono">SankenAdmin2026!</span>
+                  <span className="font-bold text-slate-200 select-all font-mono">SankenAdmin2026!</span>
                 </div>
               </div>
-              <p className="text-[10px] text-slate-400 text-center leading-normal pt-1">
+              <p className="text-[10px] text-slate-500 text-center leading-normal pt-1">
                 Use the admin panel once logged in to create new user profiles.
               </p>
             </div>
@@ -305,7 +305,7 @@ export default function LoginPage() {
         </div>
 
         {/* Home Indicator */}
-        <div className="hidden sm:block absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-slate-700/60 rounded-full z-50"></div>
+        <div className="hidden sm:block absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-slate-800 rounded-full z-50"></div>
       </div>
     </div>
   );

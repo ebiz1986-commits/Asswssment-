@@ -24,16 +24,10 @@ export default function App() {
   const [searchParams] = useSearchParams();
   
   // Dark mode option
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    return localStorage.getItem("sanken_dark_mode") !== "false";
-  });
+  const [darkMode, setDarkMode] = useState<boolean>(true);
 
   const toggleDarkMode = () => {
-    setDarkMode(prev => {
-      const next = !prev;
-      localStorage.setItem("sanken_dark_mode", String(next));
-      return next;
-    });
+    // Locked to dark mode
   };
   
   // Project profile states
@@ -494,19 +488,6 @@ function MainApp({
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            {/* Dark Mode Option Toggle Switch */}
-            <button
-              onClick={toggleDarkMode}
-              className={`p-1 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center border shadow-3xs ${
-                darkMode 
-                  ? 'bg-slate-800 hover:bg-slate-750 text-amber-400 border-slate-700' 
-                  : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
-              }`}
-              title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            >
-              {darkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-            </button>
-
             <button
               onClick={handleReSync}
               disabled={syncStatus === 'syncing'}
@@ -729,32 +710,32 @@ function ProjectSelectionScreen({
   onLogout: () => void;
 }) {
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-br from-sky-400 via-sky-200 to-blue-300 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none relative overflow-hidden">
+    <div className="min-h-[100dvh] bg-slate-950 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none relative overflow-hidden">
       {/* Dynamic background brand watermark */}
-      <div className="absolute -left-16 -top-16 opacity-15 pointer-events-none">
+      <div className="absolute -left-16 -top-16 opacity-10 pointer-events-none">
         <SankenLogo className="w-64 h-64" />
       </div>
-      <div className="absolute -right-16 -bottom-16 opacity-15 pointer-events-none">
+      <div className="absolute -right-16 -bottom-16 opacity-10 pointer-events-none">
         <SankenLogo className="w-64 h-64" />
       </div>
 
-      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-sky-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden sm:border-[10px] sm:border-sky-900 relative z-10">
-        <div className="bg-[#1e88e5] text-white px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
-          <span className="font-semibold">9:41 AM</span>
+      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-slate-900 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden sm:border-[10px] sm:border-slate-800 relative z-10">
+        <div className="bg-slate-950 text-slate-400 px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0 border-b border-slate-900">
+          <span className="font-semibold text-slate-500">9:41 AM</span>
           <div className="flex items-center space-x-1.5">
-            <Signal className="w-3.5 h-3.5 text-white" />
-            <Wifi className="w-3.5 h-3.5 text-white" />
-            <Battery className="w-4 h-4 text-white" />
+            <Signal className="w-3.5 h-3.5 text-slate-500" />
+            <Wifi className="w-3.5 h-3.5 text-slate-500" />
+            <Battery className="w-4 h-4 text-slate-500" />
           </div>
         </div>
 
-        <div className="flex-1 bg-slate-50 flex flex-col justify-between overflow-y-auto custom-scrollbar p-6">
+        <div className="flex-1 bg-slate-900 flex flex-col justify-between overflow-y-auto custom-scrollbar p-6">
           <div className="my-auto space-y-6">
             <div className="text-center space-y-2">
               <div className="flex justify-center">
                 <SankenLogo className="w-24 h-14" />
               </div>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight">Sanken Projects</h1>
+              <h1 className="text-xl font-black text-white tracking-tight">Sanken Projects</h1>
               <p className="text-xs text-[#2ea1e5] font-black uppercase tracking-wider">
                 Select your active project profile:
               </p>
@@ -765,31 +746,31 @@ function ProjectSelectionScreen({
                 <button
                   key={p.id}
                   onClick={() => onSelect(p)}
-                  className="w-full text-left bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 p-4 rounded-xl transition-all active:scale-98 cursor-pointer flex items-center justify-between group shadow-3xs"
+                  className="w-full text-left bg-slate-950 hover:bg-slate-850/80 border border-slate-800 hover:border-slate-700 p-4 rounded-xl transition-all active:scale-98 cursor-pointer flex items-center justify-between group shadow-3xs"
                 >
                   <div className="space-y-1 pr-2">
-                    <p className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                      <Landmark className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                    <p className="text-xs font-black text-slate-100 flex items-center gap-1.5">
+                      <Landmark className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>{p.projectName || "Default Project"}</span>
                     </p>
                     {p.engineerName && (
-                      <p className="text-[10px] text-slate-500 font-bold flex items-center gap-1.5">
-                        <UserCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1.5">
+                        <UserCheck className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                         <span>{p.engineerName}</span>
                       </p>
                     )}
-                    <span className="inline-block bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wide mt-1">
+                    <span className="inline-block bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wide mt-1 border border-slate-750">
                       {p.role}
                     </span>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-colors shrink-0" />
+                  <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-colors shrink-0" />
                 </button>
               ))}
             </div>
 
             <button
               onClick={onLogout}
-              className="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-extrabold transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full py-3 bg-rose-950/20 hover:bg-rose-950/30 text-rose-400 border border-rose-900/20 rounded-xl text-xs font-extrabold transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out of Account</span>

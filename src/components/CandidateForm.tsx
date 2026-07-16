@@ -835,33 +835,44 @@ export default function CandidateForm({
           <button
             type="button"
             onClick={() => setS1Expanded(!s1Expanded)}
-            className={`w-full text-left px-5 py-4 flex justify-between items-center border-b transition-colors duration-300 focus:outline-none cursor-pointer ${
+            className={`w-full text-left px-5 py-4.5 flex justify-between items-center border-b transition-all duration-300 focus:outline-none cursor-pointer ${
               darkMode ? "bg-blue-950/20 border-slate-850 hover:bg-blue-950/30 text-white" : "bg-blue-50/40 border-slate-100 hover:bg-blue-50/75 text-slate-900"
             }`}
           >
-            <div className="flex items-center space-x-2.5">
-              <div className={`p-1.5 rounded-lg shrink-0 ${darkMode ? "bg-blue-900/40 text-blue-400" : "bg-blue-100 text-blue-700"}`}>
-                <Award className="w-4 h-4 stroke-[2.5]" />
-              </div>
-              <h3 className={`text-sm font-black tracking-tight font-sans flex items-center gap-1.5 transition-colors duration-300 ${
-                darkMode ? "text-white" : "text-slate-900"
+            <div className="flex items-center space-x-3.5">
+              <div className={`p-2.5 rounded-xl shrink-0 transition-colors ${
+                darkMode ? "bg-blue-950/85 text-blue-400 border border-blue-900/40" : "bg-blue-100 text-blue-700"
               }`}>
-                <span>Section 1: Experience & Quals</span>
-                {s1Expanded ? (
-                  <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-500 stroke-[3]" />
-                )}
-              </h3>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex flex-col items-end">
-                <span className={`text-xs font-black font-mono px-2.5 py-1 rounded-lg transition-colors ${
-                  darkMode ? "text-blue-300 bg-blue-950/40" : "text-blue-800 bg-blue-100/60"
+                <Award className="w-4.5 h-4.5 stroke-[2.5]" />
+              </div>
+              <div className="flex flex-col">
+                <h3 className={`text-xs sm:text-sm font-black tracking-tight font-sans leading-snug transition-colors duration-300 ${
+                  darkMode ? "text-white" : "text-slate-900"
                 }`}>
-                  {s1Subtotal} / 50
-                </span>
-                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">50% Weight</span>
+                  <span className="block">Section 1: Experience &</span>
+                  <span className="inline-flex items-center gap-1 mt-0.5">
+                    Quals
+                    {s1Expanded ? (
+                      <ChevronUp className="w-3.5 h-3.5 text-slate-400 stroke-[3]" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-500 stroke-[3]" />
+                    )}
+                  </span>
+                </h3>
+              </div>
+            </div>
+            <div className="flex flex-col items-center shrink-0 ml-2">
+              <div className={`w-14 py-2 rounded-xl flex flex-col items-center justify-center font-mono border transition-colors ${
+                darkMode 
+                  ? "bg-slate-950/85 border-slate-800/80 text-blue-400 shadow-3xs" 
+                  : "bg-slate-100 border-slate-200 text-blue-800"
+              }`}>
+                <span className="text-[11px] font-black leading-none">{s1Subtotal} /</span>
+                <span className="text-xs font-black leading-none mt-0.5">50</span>
+              </div>
+              <div className="flex flex-col items-center mt-1 text-[8px] font-black leading-tight uppercase tracking-wider text-slate-500">
+                <span>50%</span>
+                <span>WEIGHT</span>
               </div>
             </div>
           </button>
@@ -989,33 +1000,44 @@ export default function CandidateForm({
           <button
             type="button"
             onClick={() => setS2Expanded(!s2Expanded)}
-            className={`w-full text-left px-5 py-4 flex justify-between items-center border-b transition-colors duration-300 focus:outline-none cursor-pointer ${
-              darkMode ? "bg-indigo-950/20 border-slate-850 hover:bg-indigo-950/30 text-white" : "bg-indigo-50/40 border-slate-100 hover:bg-indigo-50/75 text-slate-900"
+            className={`w-full text-left px-5 py-4.5 flex justify-between items-center border-b transition-all duration-300 focus:outline-none cursor-pointer ${
+              darkMode ? "bg-indigo-950/15 border-slate-850 hover:bg-indigo-950/25 text-white" : "bg-indigo-50/40 border-slate-100 hover:bg-indigo-50/75 text-slate-900"
             }`}
           >
-            <div className="flex items-center space-x-2.5">
-              <div className={`p-1.5 rounded-lg shrink-0 ${darkMode ? "bg-indigo-900/40 text-indigo-400" : "bg-indigo-100 text-indigo-700"}`}>
-                <BookOpen className="w-4 h-4 stroke-[2.5]" />
-              </div>
-              <h3 className={`text-sm font-black tracking-tight font-sans flex items-center gap-1.5 transition-colors duration-300 ${
-                darkMode ? "text-white" : "text-slate-900"
+            <div className="flex items-center space-x-3.5">
+              <div className={`p-2.5 rounded-xl shrink-0 transition-colors ${
+                darkMode ? "bg-indigo-950/85 text-indigo-400 border border-indigo-900/30" : "bg-indigo-100 text-indigo-700"
               }`}>
-                <span>Section 2: Knowledge & Practice</span>
-                {s2Expanded ? (
-                  <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-500 stroke-[3]" />
-                )}
-              </h3>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex flex-col items-end">
-                <span className={`text-xs font-black font-mono px-2.5 py-1 rounded-lg transition-colors ${
-                  darkMode ? "text-indigo-300 bg-indigo-950/40" : "text-indigo-800 bg-indigo-100/60"
+                <BookOpen className="w-4.5 h-4.5 stroke-[2.5]" />
+              </div>
+              <div className="flex flex-col">
+                <h3 className={`text-xs sm:text-sm font-black tracking-tight font-sans leading-snug transition-colors duration-300 ${
+                  darkMode ? "text-white" : "text-slate-900"
                 }`}>
-                  {s2Subtotal} / 40
-                </span>
-                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">40% Weight</span>
+                  <span className="block">Section 2: Knowledge &</span>
+                  <span className="inline-flex items-center gap-1 mt-0.5">
+                    Practice
+                    {s2Expanded ? (
+                      <ChevronUp className="w-3.5 h-3.5 text-slate-400 stroke-[3]" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-500 stroke-[3]" />
+                    )}
+                  </span>
+                </h3>
+              </div>
+            </div>
+            <div className="flex flex-col items-center shrink-0 ml-2">
+              <div className={`w-14 py-2 rounded-xl flex flex-col items-center justify-center font-mono border transition-colors ${
+                darkMode 
+                  ? "bg-slate-950/85 border-slate-800/80 text-indigo-400 shadow-3xs" 
+                  : "bg-slate-100 border-slate-200 text-indigo-800"
+              }`}>
+                <span className="text-[11px] font-black leading-none">{s2Subtotal} /</span>
+                <span className="text-xs font-black leading-none mt-0.5">40</span>
+              </div>
+              <div className="flex flex-col items-center mt-1 text-[8px] font-black leading-tight uppercase tracking-wider text-slate-500">
+                <span>40%</span>
+                <span>WEIGHT</span>
               </div>
             </div>
           </button>
@@ -1180,33 +1202,44 @@ export default function CandidateForm({
           <button
             type="button"
             onClick={() => setS3Expanded(!s3Expanded)}
-            className={`w-full text-left px-5 py-4 flex justify-between items-center border-b transition-colors duration-300 focus:outline-none cursor-pointer ${
+            className={`w-full text-left px-5 py-4.5 flex justify-between items-center border-b transition-all duration-300 focus:outline-none cursor-pointer ${
               darkMode ? "bg-amber-950/10 border-slate-850 hover:bg-amber-950/20 text-white" : "bg-amber-50/40 border-slate-100 hover:bg-amber-50/75 text-slate-900"
             }`}
           >
-            <div className="flex items-center space-x-2.5">
-              <div className={`p-1.5 rounded-lg shrink-0 ${darkMode ? "bg-amber-900/40 text-amber-400" : "bg-amber-100 text-amber-700"}`}>
-                <Heart className="w-4 h-4 stroke-[2.5]" />
-              </div>
-              <h3 className={`text-sm font-black tracking-tight font-sans flex items-center gap-1.5 transition-colors duration-300 ${
-                darkMode ? "text-white" : "text-slate-900"
+            <div className="flex items-center space-x-3.5">
+              <div className={`p-2.5 rounded-xl shrink-0 transition-colors ${
+                darkMode ? "bg-amber-950/80 text-amber-400 border border-amber-900/30" : "bg-amber-100 text-amber-700"
               }`}>
-                <span>Section 3: Appearance & Attitude</span>
-                {s3Expanded ? (
-                  <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-500 stroke-[3]" />
-                )}
-              </h3>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex flex-col items-end">
-                <span className={`text-xs font-black font-mono px-2.5 py-1 rounded-lg transition-colors ${
-                  darkMode ? "text-amber-300 bg-amber-950/40" : "text-amber-800 bg-amber-100/60"
+                <Heart className="w-4.5 h-4.5 stroke-[2.5]" />
+              </div>
+              <div className="flex flex-col">
+                <h3 className={`text-xs sm:text-sm font-black tracking-tight font-sans leading-snug transition-colors duration-300 ${
+                  darkMode ? "text-white" : "text-slate-900"
                 }`}>
-                  {s3Subtotal} / 10
-                </span>
-                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">10% Weight</span>
+                  <span className="block">Section 3: Appearance &</span>
+                  <span className="inline-flex items-center gap-1 mt-0.5">
+                    Attitude
+                    {s3Expanded ? (
+                      <ChevronUp className="w-3.5 h-3.5 text-slate-400 stroke-[3]" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-500 stroke-[3]" />
+                    )}
+                  </span>
+                </h3>
+              </div>
+            </div>
+            <div className="flex flex-col items-center shrink-0 ml-2">
+              <div className={`w-14 py-2 rounded-xl flex flex-col items-center justify-center font-mono border transition-colors ${
+                darkMode 
+                  ? "bg-slate-950/85 border-slate-800/80 text-amber-400 shadow-3xs" 
+                  : "bg-slate-100 border-slate-200 text-amber-800"
+              }`}>
+                <span className="text-[11px] font-black leading-none">{s3Subtotal} /</span>
+                <span className="text-xs font-black leading-none mt-0.5">10</span>
+              </div>
+              <div className="flex flex-col items-center mt-1 text-[8px] font-black leading-tight uppercase tracking-wider text-slate-500">
+                <span>10%</span>
+                <span>WEIGHT</span>
               </div>
             </div>
           </button>
@@ -1371,24 +1404,41 @@ export default function CandidateForm({
           <button
             type="button"
             onClick={() => setS4Expanded(!s4Expanded)}
-            className={`w-full text-left px-5 py-4 flex justify-between items-center border-b transition-colors duration-300 focus:outline-none cursor-pointer ${
+            className={`w-full text-left px-5 py-4.5 flex justify-between items-center border-b transition-all duration-300 focus:outline-none cursor-pointer ${
               darkMode ? "bg-emerald-950/10 border-slate-850 hover:bg-emerald-950/20 text-white" : "bg-emerald-50/40 border-slate-100 hover:bg-emerald-50/75 text-slate-900"
             }`}
           >
-            <div className="flex items-center space-x-2.5">
-              <div className={`p-1.5 rounded-lg shrink-0 ${darkMode ? "bg-emerald-900/40 text-emerald-400" : "bg-emerald-100 text-emerald-700"}`}>
-                <Hammer className="w-4 h-4 stroke-[2.5]" />
-              </div>
-              <h3 className={`text-sm font-black tracking-tight font-sans flex items-center gap-1.5 transition-colors duration-300 ${
-                darkMode ? "text-white" : "text-slate-900"
+            <div className="flex items-center space-x-3.5">
+              <div className={`p-2.5 rounded-xl shrink-0 transition-colors ${
+                darkMode ? "bg-emerald-950/80 text-emerald-400 border border-emerald-900/30" : "bg-emerald-100 text-emerald-700"
               }`}>
-                <span>Section 4: Practical Test & Remarks</span>
+                <Hammer className="w-4.5 h-4.5 stroke-[2.5]" />
+              </div>
+              <div className="flex flex-col">
+                <h3 className={`text-xs sm:text-sm font-black tracking-tight font-sans leading-snug transition-colors duration-300 ${
+                  darkMode ? "text-white" : "text-slate-900"
+                }`}>
+                  <span className="block">Section 4: Practical Test &</span>
+                  <span className="inline-flex items-center gap-1 mt-0.5">
+                    Remarks
+                    {s4Expanded ? (
+                      <ChevronUp className="w-3.5 h-3.5 text-slate-400 stroke-[3]" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-500 stroke-[3]" />
+                    )}
+                  </span>
+                </h3>
+              </div>
+            </div>
+            {/* Center-aligned chevron block to match card visual spacing on right */}
+            <div className="flex flex-col items-center shrink-0 ml-2 w-14">
+              <div className={`p-1 rounded-lg ${darkMode ? "text-slate-500" : "text-slate-400"}`}>
                 {s4Expanded ? (
-                  <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
+                  <ChevronUp className="w-5 h-5 stroke-[2.5]" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-500 stroke-[3]" />
+                  <ChevronDown className="w-5 h-5 stroke-[2.5]" />
                 )}
-              </h3>
+              </div>
             </div>
           </button>
 
