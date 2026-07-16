@@ -5,7 +5,7 @@ import { Users, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 
 interface DashboardStatsProps {
   candidates: Candidate[];
-  positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason';
+  positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason' | 'rigger' | 'shoutering_carpenter' | 'spray_painter' | 'survey_helper' | 'tile_mason' | 'wall_painter';
 }
 
 export default function DashboardStats({ candidates, positionId }: DashboardStatsProps) {

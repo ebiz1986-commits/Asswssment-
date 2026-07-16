@@ -6,7 +6,7 @@ import { Search, Plus, ArrowLeft, SlidersHorizontal, Award, Scale, Phone, Downlo
 interface CandidateListProps {
   candidates: Candidate[];
   selectedId: string | null;
-  positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason';
+  positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason' | 'rigger' | 'shoutering_carpenter' | 'spray_painter' | 'survey_helper' | 'tile_mason' | 'wall_painter';
   onSelect: (id: string) => void;
   onAddNew: () => void;
   onBackToPositions: () => void;

@@ -9,7 +9,7 @@ import {
   Search, Filter, Download, LayoutDashboard, Users, CheckCircle2, XCircle, 
   AlertCircle, TrendingUp, BarChart3, HelpCircle, Eye, RefreshCw
 } from "lucide-react";
-import { UserProfile, Candidate } from "../types";
+import { UserProfile, Candidate, POSITIONS } from "../types";
 
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -563,21 +563,23 @@ export default function AdminPage() {
                     <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Candidate Trade Distribution</h4>
                   </div>
                   <div className="space-y-2.5">
-                    {[
-                      { label: "Bar Bender", count: barBenderCount, color: "bg-blue-500" },
-                      { label: "Finishing Carpenter", count: carpenterCount, color: "bg-amber-500" },
-                      { label: "Labour", count: labourCount, color: "bg-slate-500" },
-                      { label: "Mason", count: masonCount, color: "bg-emerald-500" }
-                    ].map(trade => {
-                      const pct = totalCount > 0 ? Math.round((trade.count / totalCount) * 100) : 0;
+                    {POSITIONS.map((pos, index) => {
+                      const count = candidates.filter((c) => c.positionId === pos.id).length;
+                      const pct = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
+                      const colors = [
+                        "bg-blue-500", "bg-amber-500", "bg-slate-500", "bg-emerald-500",
+                        "bg-indigo-500", "bg-amber-600", "bg-rose-500", "bg-cyan-500",
+                        "bg-teal-500", "bg-orange-500"
+                      ];
+                      const color = colors[index % colors.length];
                       return (
-                        <div key={trade.label} className="space-y-1">
+                        <div key={pos.id} className="space-y-1">
                           <div className="flex justify-between text-2xs font-extrabold text-slate-700">
-                            <span>{trade.label}</span>
-                            <span className="font-mono text-slate-500">{trade.count} candidates ({pct}%)</span>
+                            <span>{pos.title}</span>
+                            <span className="font-mono text-slate-500">{count} candidates ({pct}%)</span>
                           </div>
                           <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div className={`${trade.color} h-2 rounded-full transition-all duration-500`} style={{ width: `${pct}%` }}></div>
+                            <div className={`${color} h-2 rounded-full transition-all duration-500`} style={{ width: `${pct}%` }}></div>
                           </div>
                         </div>
                       );
@@ -653,10 +655,9 @@ export default function AdminPage() {
                       className="w-full px-2 py-1.5 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
                     >
                       <option value="all">All Trades</option>
-                      <option value="bar_bender">Bar Bender</option>
-                      <option value="finishing_carpenter">Finishing Carpenter</option>
-                      <option value="labour">Labour</option>
-                      <option value="mason">Mason</option>
+                      {POSITIONS.map((pos) => (
+                        <option key={pos.id} value={pos.id}>{pos.title}</option>
+                      ))}
                     </select>
                   </div>
 

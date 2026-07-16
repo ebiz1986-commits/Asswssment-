@@ -7,5 +7,8 @@ service cloud.firestore {
     match /user_profiles/{email} {
       allow read, write: if true;
     }
+    match /requirement_companies/{companyId} {
+      allow read, write: if true;
+    }
   }
 }

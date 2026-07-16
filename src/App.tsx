@@ -195,7 +195,7 @@ function MainApp({
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [filterByProject, setFilterByProject] = useState(activeProfile?.id !== "admin");
 
-  const [selectedRole, setSelectedRole] = useState<'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason' | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason' | 'rigger' | 'shoutering_carpenter' | 'spray_painter' | 'survey_helper' | 'tile_mason' | 'wall_painter' | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
   const [screen, setScreen] = useState<'position_select' | 'candidate_list' | 'candidate_detail' | 'candidate_form'>('position_select');

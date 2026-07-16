@@ -1,14 +1,14 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import { Candidate, POSITIONS, getPositionRubrics } from "../types";
 import { migrateCandidateToHundredScale } from "../utils";
-import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer, Camera, Upload, Trash2, User, Image, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer, Camera, Upload, Trash2, User, Image, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
 
 interface CandidateFormProps {
   candidate?: Candidate | null; // If null, we are adding new
-  positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason';
+  positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason' | 'rigger' | 'shoutering_carpenter' | 'spray_painter' | 'survey_helper' | 'tile_mason' | 'wall_painter';
   activeProfile?: any;
   onSave: (candidate: Candidate) => void;
   onCancel: () => void;
@@ -234,6 +234,12 @@ export default function CandidateForm({
     initialCandidate ? initialCandidate.practicalTestRequired : false
   );
   const [notes, setNotes] = useState(initialCandidate?.notes || "");
+
+  // Section toggle states (accordion dropdowns)
+  const [s1Expanded, setS1Expanded] = useState(false);
+  const [s2Expanded, setS2Expanded] = useState(false);
+  const [s3Expanded, setS3Expanded] = useState(false);
+  const [s4Expanded, setS4Expanded] = useState(false);
 
   // Automatically generate reference ID prefix for new candidates
   useEffect(() => {
@@ -654,417 +660,469 @@ export default function CandidateForm({
 
         {/* 4. Section 1: Experience & Qualification */}
         <div className="bg-white rounded-[20px] border-l-[6px] border-l-blue-600 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
-          <div className="bg-blue-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100">
+          <button
+            type="button"
+            onClick={() => setS1Expanded(!s1Expanded)}
+            className="w-full text-left bg-blue-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100 transition-colors hover:bg-blue-50/75 focus:outline-none cursor-pointer"
+          >
             <div className="flex items-center space-x-2.5">
               <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg shrink-0">
                 <Award className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans">
-                Section 1: Experience & Quals
+              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans flex items-center gap-1.5">
+                <span>Section 1: Experience & Quals</span>
+                {s1Expanded ? (
+                  <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-slate-500 stroke-[3]" />
+                )}
               </h3>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="text-blue-800 text-xs font-black font-mono bg-blue-100/60 px-2.5 py-1 rounded-lg">
-                {s1Subtotal} / 50
-              </span>
-              <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">50% Weight</span>
+            <div className="flex items-center space-x-3">
+              <div className="flex flex-col items-end">
+                <span className="text-blue-800 text-xs font-black font-mono bg-blue-100/60 px-2.5 py-1 rounded-lg">
+                  {s1Subtotal} / 50
+                </span>
+                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">50% Weight</span>
+              </div>
             </div>
-          </div>
+          </button>
 
-          <div className="p-5 space-y-4">
-            {/* Site Experience */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800 leading-normal">
-                {rubrics.s1.s1_siteExperience.label}
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
-                  Weight: 50
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
-                  Result: ({num(s1_siteExperience)}/100) * 50 = {Math.round(s1_siteExp_w * 10) / 10}
-                </span>
+          {s1Expanded && (
+            <div className="p-5 space-y-4">
+              {/* Site Experience */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                  {rubrics.s1.s1_siteExperience.label}
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                    Weight: 50
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                    Result: ({num(s1_siteExperience)}/100) * 50 = {Math.round(s1_siteExp_w * 10) / 10}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={s1_siteExperience}
+                    onChange={(e) => handleNumberChange(setS1SiteExperience, e.target.value, 100)}
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                  />
+                  <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2.5 pt-1">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={s1_siteExperience}
-                  onChange={(e) => handleNumberChange(setS1SiteExperience, e.target.value, 100)}
-                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
-                />
-                <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
-              </div>
-            </div>
 
-            {/* NVQ Qualification */}
-            <div className="space-y-1.5 pt-4 border-t border-slate-100">
-              <label className="block text-xs font-bold text-slate-800 leading-normal">
-                {rubrics.s1.s1_nvqQualification.label}
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
-                  Weight: 30
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
-                  Result: ({num(s1_nvqQualification)}/100) * 30 = {Math.round(s1_nvq_w * 10) / 10}
-                </span>
+              {/* NVQ Qualification */}
+              <div className="space-y-1.5 pt-4 border-t border-slate-100">
+                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                  {rubrics.s1.s1_nvqQualification.label}
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                    Weight: 30
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                    Result: ({num(s1_nvqQualification)}/100) * 30 = {Math.round(s1_nvq_w * 10) / 10}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={s1_nvqQualification}
+                    onChange={(e) => handleNumberChange(setS1NvqQualification, e.target.value, 100)}
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                  />
+                  <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2.5 pt-1">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={s1_nvqQualification}
-                  onChange={(e) => handleNumberChange(setS1NvqQualification, e.target.value, 100)}
-                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
-                />
-                <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
-              </div>
-            </div>
 
-            {/* 3rd Party Recommendation */}
-            <div className="space-y-1.5 pt-4 border-t border-slate-100">
-              <label className="block text-xs font-bold text-slate-800 leading-normal">
-                {rubrics.s1.s1_recommendation.label}
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
-                  Weight: 20
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
-                  Result: ({num(s1_recommendation)}/100) * 20 = {Math.round(s1_rec_w * 10) / 10}
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5 pt-1">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={s1_recommendation}
-                  onChange={(e) => handleNumberChange(setS1Recommendation, e.target.value, 100)}
-                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
-                />
-                <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+              {/* 3rd Party Recommendation */}
+              <div className="space-y-1.5 pt-4 border-t border-slate-100">
+                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                  {rubrics.s1.s1_recommendation.label}
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                    Weight: 20
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                    Result: ({num(s1_recommendation)}/100) * 20 = {Math.round(s1_rec_w * 10) / 10}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={s1_recommendation}
+                    onChange={(e) => handleNumberChange(setS1Recommendation, e.target.value, 100)}
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                  />
+                  <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* 5. Section 2: Knowledge & Practice */}
         <div className="bg-white rounded-[20px] border-l-[6px] border-l-indigo-600 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
-          <div className="bg-indigo-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100">
+          <button
+            type="button"
+            onClick={() => setS2Expanded(!s2Expanded)}
+            className="w-full text-left bg-indigo-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100 transition-colors hover:bg-indigo-50/75 focus:outline-none cursor-pointer"
+          >
             <div className="flex items-center space-x-2.5">
               <div className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg shrink-0">
                 <BookOpen className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans">
-                Section 2: Knowledge & Practice
+              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans flex items-center gap-1.5">
+                <span>Section 2: Knowledge & Practice</span>
+                {s2Expanded ? (
+                  <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-slate-500 stroke-[3]" />
+                )}
               </h3>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="text-indigo-800 text-xs font-black font-mono bg-indigo-100/60 px-2.5 py-1 rounded-lg">
-                {s2Subtotal} / 40
-              </span>
-              <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">40% Weight</span>
+            <div className="flex items-center space-x-3">
+              <div className="flex flex-col items-end">
+                <span className="text-indigo-800 text-xs font-black font-mono bg-indigo-100/60 px-2.5 py-1 rounded-lg">
+                  {s2Subtotal} / 40
+                </span>
+                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">40% Weight</span>
+              </div>
             </div>
-          </div>
+          </button>
 
-          <div className="p-5 space-y-4">
-            {/* Measurement Reading */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800 leading-normal">
-                {rubrics.s2.s2_measurementReading.label}
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
-                  Weight: 20
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
-                  Result: ({num(s2_measurementReading)}/100) * 20 = {Math.round(s2_meas_w * 10) / 10}
-                </span>
+          {s2Expanded && (
+            <div className="p-5 space-y-4">
+              {/* Measurement Reading */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                  {rubrics.s2.s2_measurementReading.label}
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                    Weight: 20
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                    Result: ({num(s2_measurementReading)}/100) * 20 = {Math.round(s2_meas_w * 10) / 10}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={s2_measurementReading}
+                    onChange={(e) => handleNumberChange(setS2MeasurementReading, e.target.value, 100)}
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                  />
+                  <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2.5 pt-1">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={s2_measurementReading}
-                  onChange={(e) => handleNumberChange(setS2MeasurementReading, e.target.value, 100)}
-                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
-                />
-                <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
-              </div>
-            </div>
 
-            {/* Knowledge in Machines */}
-            <div className="space-y-1.5 pt-4 border-t border-slate-100">
-              <label className="block text-xs font-bold text-slate-800 leading-normal">
-                {rubrics.s2.s2_machineKnowledge.label}
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
-                  Weight: 20
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
-                  Result: ({num(s2_machineKnowledge)}/100) * 20 = {Math.round(s2_mach_w * 10) / 10}
-                </span>
+              {/* Knowledge in Machines */}
+              <div className="space-y-1.5 pt-4 border-t border-slate-100">
+                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                  {rubrics.s2.s2_machineKnowledge.label}
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                    Weight: 20
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                    Result: ({num(s2_machineKnowledge)}/100) * 20 = {Math.round(s2_mach_w * 10) / 10}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={s2_machineKnowledge}
+                    onChange={(e) => handleNumberChange(setS2MachineKnowledge, e.target.value, 100)}
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                  />
+                  <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2.5 pt-1">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={s2_machineKnowledge}
-                  onChange={(e) => handleNumberChange(setS2MachineKnowledge, e.target.value, 100)}
-                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
-                />
-                <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
-              </div>
-            </div>
 
-            {/* Knowledge & Practise Methodology */}
-            <div className="space-y-1.5 pt-4 border-t border-slate-100">
-              <label className="block text-xs font-bold text-slate-800 leading-normal">
-                {rubrics.s2.s2_methodology.label}
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
-                  Weight: 50
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
-                  Result: ({num(s2_methodology)}/100) * 50 = {Math.round(s2_meth_w * 10) / 10}
-                </span>
+              {/* Knowledge & Practise Methodology */}
+              <div className="space-y-1.5 pt-4 border-t border-slate-100">
+                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                  {rubrics.s2.s2_methodology.label}
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                    Weight: 50
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                    Result: ({num(s2_methodology)}/100) * 50 = {Math.round(s2_meth_w * 10) / 10}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={s2_methodology}
+                    onChange={(e) => handleNumberChange(setS2Methodology, e.target.value, 100)}
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                  />
+                  <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2.5 pt-1">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={s2_methodology}
-                  onChange={(e) => handleNumberChange(setS2Methodology, e.target.value, 100)}
-                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
-                />
-                <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
-              </div>
-            </div>
 
-            {/* Knowledge & Practise with HSE */}
-            <div className="space-y-1.5 pt-4 border-t border-slate-100">
-              <label className="block text-xs font-bold text-slate-800 leading-normal">
-                {rubrics.s2.s2_hseEquipment.label}
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
-                  Weight: 10
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
-                  Result: ({num(s2_hseEquipment)}/100) * 10 = {Math.round(s2_hse_w * 10) / 10}
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5 pt-1">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={s2_hseEquipment}
-                  onChange={(e) => handleNumberChange(setS2HseEquipment, e.target.value, 100)}
-                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
-                />
-                <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+              {/* Knowledge & Practise with HSE */}
+              <div className="space-y-1.5 pt-4 border-t border-slate-100">
+                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                  {rubrics.s2.s2_hseEquipment.label}
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                    Weight: 10
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                    Result: ({num(s2_hseEquipment)}/100) * 10 = {Math.round(s2_hse_w * 10) / 10}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={s2_hseEquipment}
+                    onChange={(e) => handleNumberChange(setS2HseEquipment, e.target.value, 100)}
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                  />
+                  <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* 6. Section 3: Appearance & Attitude */}
         <div className="bg-white rounded-[20px] border-l-[6px] border-l-amber-500 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
-          <div className="bg-amber-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100">
+          <button
+            type="button"
+            onClick={() => setS3Expanded(!s3Expanded)}
+            className="w-full text-left bg-amber-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100 transition-colors hover:bg-amber-50/75 focus:outline-none cursor-pointer"
+          >
             <div className="flex items-center space-x-2.5">
               <div className="p-1.5 bg-amber-100 text-amber-700 rounded-lg shrink-0">
                 <Heart className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans">
-                Section 3: Appearance & Attitude
+              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans flex items-center gap-1.5">
+                <span>Section 3: Appearance & Attitude</span>
+                {s3Expanded ? (
+                  <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-slate-500 stroke-[3]" />
+                )}
               </h3>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="text-amber-800 text-xs font-black font-mono bg-amber-100/60 px-2.5 py-1 rounded-lg">
-                {s3Subtotal} / 10
-              </span>
-              <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">10% Weight</span>
+            <div className="flex items-center space-x-3">
+              <div className="flex flex-col items-end">
+                <span className="text-amber-800 text-xs font-black font-mono bg-amber-100/60 px-2.5 py-1 rounded-lg">
+                  {s3Subtotal} / 10
+                </span>
+                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">10% Weight</span>
+              </div>
             </div>
-          </div>
+          </button>
 
-          <div className="p-5 space-y-4">
-            {/* Physical Appearance & Fitness */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-800 leading-normal">
-                {rubrics.s3.s3_physicalAppearance.label}
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
-                  Weight: 25
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
-                  Result: ({num(s3_physicalAppearance)}/100) * 25 = {Math.round(s3_phys_w * 10) / 10}
-                </span>
+          {s3Expanded && (
+            <div className="p-5 space-y-4">
+              {/* Physical Appearance & Fitness */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                  {rubrics.s3.s3_physicalAppearance.label}
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                    Weight: 25
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                    Result: ({num(s3_physicalAppearance)}/100) * 25 = {Math.round(s3_phys_w * 10) / 10}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={s3_physicalAppearance}
+                    onChange={(e) => handleNumberChange(setS3PhysicalAppearance, e.target.value, 100)}
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                  />
+                  <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2.5 pt-1">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={s3_physicalAppearance}
-                  onChange={(e) => handleNumberChange(setS3PhysicalAppearance, e.target.value, 100)}
-                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
-                />
-                <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
-              </div>
-            </div>
 
-            {/* Health Condition */}
-            <div className="space-y-1.5 pt-4 border-t border-slate-100">
-              <label className="block text-xs font-bold text-slate-800 leading-normal">
-                {rubrics.s3.s3_healthCondition.label}
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
-                  Weight: 25
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
-                  Result: ({num(s3_healthCondition)}/100) * 25 = {Math.round(s3_heal_w * 10) / 10}
-                </span>
+              {/* Health Condition */}
+              <div className="space-y-1.5 pt-4 border-t border-slate-100">
+                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                  {rubrics.s3.s3_healthCondition.label}
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                    Weight: 25
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                    Result: ({num(s3_healthCondition)}/100) * 25 = {Math.round(s3_heal_w * 10) / 10}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={s3_healthCondition}
+                    onChange={(e) => handleNumberChange(setS3HealthCondition, e.target.value, 100)}
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                  />
+                  <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2.5 pt-1">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={s3_healthCondition}
-                  onChange={(e) => handleNumberChange(setS3HealthCondition, e.target.value, 100)}
-                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
-                />
-                <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
-              </div>
-            </div>
 
-            {/* Character & Attitude */}
-            <div className="space-y-1.5 pt-4 border-t border-slate-100">
-              <label className="block text-xs font-bold text-slate-800 leading-normal">
-                {rubrics.s3.s3_characterAttitude.label}
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
-                  Weight: 30
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
-                  Result: ({num(s3_characterAttitude)}/100) * 30 = {Math.round(s3_char_w * 10) / 10}
-                </span>
+              {/* Character & Attitude */}
+              <div className="space-y-1.5 pt-4 border-t border-slate-100">
+                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                  {rubrics.s3.s3_characterAttitude.label}
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                    Weight: 30
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                    Result: ({num(s3_characterAttitude)}/100) * 30 = {Math.round(s3_char_w * 10) / 10}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={s3_characterAttitude}
+                    onChange={(e) => handleNumberChange(setS3CharacterAttitude, e.target.value, 100)}
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                  />
+                  <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2.5 pt-1">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={s3_characterAttitude}
-                  onChange={(e) => handleNumberChange(setS3CharacterAttitude, e.target.value, 100)}
-                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
-                />
-                <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
-              </div>
-            </div>
 
-            {/* Ability to Work Extended Hours */}
-            <div className="space-y-1.5 pt-4 border-t border-slate-100">
-              <label className="block text-xs font-bold text-slate-800 leading-normal">
-                {rubrics.s3.s3_extendedHours.label}
-              </label>
-              <div className="flex gap-1.5 flex-wrap">
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
-                  Weight: 20
-                </span>
-                <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
-                  Result: ({num(s3_extendedHours)}/100) * 20 = {Math.round(s3_ext_w * 10) / 10}
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5 pt-1">
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value={s3_extendedHours}
-                  onChange={(e) => handleNumberChange(setS3ExtendedHours, e.target.value, 100)}
-                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
-                />
-                <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+              {/* Ability to Work Extended Hours */}
+              <div className="space-y-1.5 pt-4 border-t border-slate-100">
+                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                  {rubrics.s3.s3_extendedHours.label}
+                </label>
+                <div className="flex gap-1.5 flex-wrap">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                    Weight: 20
+                  </span>
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                    Result: ({num(s3_extendedHours)}/100) * 20 = {Math.round(s3_ext_w * 10) / 10}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5 pt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value={s3_extendedHours}
+                    onChange={(e) => handleNumberChange(setS3ExtendedHours, e.target.value, 100)}
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                  />
+                  <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* 7. Section 4: Practical Test & Remarks */}
         <div className="bg-white rounded-[20px] border-l-[6px] border-l-emerald-600 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
-          <div className="bg-emerald-50/40 px-5 py-4 flex items-center space-x-2.5 border-b border-slate-100">
-            <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg shrink-0">
-              <Hammer className="w-4 h-4 stroke-[2.5]" />
+          <button
+            type="button"
+            onClick={() => setS4Expanded(!s4Expanded)}
+            className="w-full text-left bg-emerald-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100 transition-colors hover:bg-emerald-50/75 focus:outline-none cursor-pointer"
+          >
+            <div className="flex items-center space-x-2.5">
+              <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg shrink-0">
+                <Hammer className="w-4 h-4 stroke-[2.5]" />
+              </div>
+              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans flex items-center gap-1.5">
+                <span>Section 4: Practical Test & Remarks</span>
+                {s4Expanded ? (
+                  <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-slate-500 stroke-[3]" />
+                )}
+              </h3>
             </div>
-            <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans">
-              Section 4: Practical Test & Remarks
-            </h3>
-          </div>
+          </button>
 
-          <div className="p-5 space-y-4">
-            {/* Practical Test */}
-            <div>
-              <label className="block text-xs font-bold text-slate-800 leading-normal mb-1">
-                Practical Test Status
-              </label>
-              <p className="text-[10px] text-slate-400 font-semibold tracking-tight mb-3">
-                Check if a practical field test is required
-              </p>
-              
-              <div className="flex items-center">
-                <label className="flex items-center gap-3 cursor-pointer select-none group py-1">
-                  <input
-                    type="checkbox"
-                    checked={practicalTestRequired}
-                    onChange={(e) => setPracticalTestRequired(e.target.checked)}
-                    className="w-5 h-5 rounded border-slate-300 text-slate-950 focus:ring-slate-950 cursor-pointer accent-slate-950"
-                  />
-                  <div className="text-sm font-extrabold text-slate-800 group-hover:text-slate-950 transition-colors">
-                    Practical Test Required
-                  </div>
+          {s4Expanded && (
+            <div className="p-5 space-y-4">
+              {/* Practical Test */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 leading-normal mb-1">
+                  Practical Test Status
                 </label>
+                <p className="text-[10px] text-slate-400 font-semibold tracking-tight mb-3">
+                  Check if a practical field test is required
+                </p>
+                
+                <div className="flex items-center">
+                  <label className="flex items-center gap-3 cursor-pointer select-none group py-1">
+                    <input
+                      type="checkbox"
+                      checked={practicalTestRequired}
+                      onChange={(e) => setPracticalTestRequired(e.target.checked)}
+                      className="w-5 h-5 rounded border-slate-300 text-slate-950 focus:ring-slate-950 cursor-pointer accent-slate-950"
+                    />
+                    <div className="text-sm font-extrabold text-slate-800 group-hover:text-slate-950 transition-colors">
+                      Practical Test Required
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Remarks */}
+              <div className="pt-4 border-t border-slate-100">
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                  Remarks
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Additional remarks..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 transition-all font-medium resize-none"
+                />
               </div>
             </div>
-
-            {/* Remarks */}
-            <div className="pt-4 border-t border-slate-100">
-              <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                Remarks
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Additional remarks..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 transition-all font-medium resize-none"
-              />
-            </div>
-          </div>
+          )}
         </div>
 
         {/* 9. Action Buttons */}

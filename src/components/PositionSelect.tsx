@@ -1,8 +1,8 @@
 import { POSITIONS, PositionInfo } from "../types";
-import { ChevronRight, Wrench, Hammer, HardHat, Building } from "lucide-react";
+import { ChevronRight, Wrench, Hammer, HardHat, Building, Anchor, Layout, PaintBucket, Compass, Grid, Brush } from "lucide-react";
 
 interface PositionSelectProps {
-  onSelectPosition: (positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason') => void;
+  onSelectPosition: (positionId: any) => void;
 }
 
 export default function PositionSelect({ onSelectPosition }: PositionSelectProps) {
@@ -18,6 +18,18 @@ export default function PositionSelect({ onSelectPosition }: PositionSelectProps
         return <HardHat className="w-5 h-5 text-slate-800" />;
       case "building":
         return <Building className="w-5 h-5 text-slate-800" />;
+      case "anchor":
+        return <Anchor className="w-5 h-5 text-slate-800" />;
+      case "layout":
+        return <Layout className="w-5 h-5 text-slate-800" />;
+      case "paint-bucket":
+        return <PaintBucket className="w-5 h-5 text-slate-800" />;
+      case "compass":
+        return <Compass className="w-5 h-5 text-slate-800" />;
+      case "grid":
+        return <Grid className="w-5 h-5 text-slate-800" />;
+      case "brush":
+        return <Brush className="w-5 h-5 text-slate-800" />;
       default:
         return <Wrench className="w-5 h-5 text-slate-800" />;
     }
