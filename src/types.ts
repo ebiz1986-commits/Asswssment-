@@ -9,6 +9,8 @@ export interface Candidate {
   date: string;
   assessor: string;
   contact: string;
+  projectName?: string; // Associated construction project name
+  requirementCompany?: string; // Requirement company name
   
   // Section 1: Experience & Qualification (50% weight total)
   s1_siteExperience: number; // Max 50
@@ -221,3 +223,14 @@ export function getPositionRubrics(positionId: string) {
     }
   };
 }
+
+export interface UserProfile {
+  id: string; // Composite doc ID: email_project (lowercased/slugified)
+  email: string;
+  password?: string;
+  role: string;
+  projectName?: string;
+  engineerName?: string;
+  createdAt?: string;
+}
+

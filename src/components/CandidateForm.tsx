@@ -1,11 +1,14 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import { Candidate, POSITIONS, getPositionRubrics } from "../types";
 import { migrateCandidateToHundredScale } from "../utils";
-import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer, Camera, Upload, Trash2, User, Image } from "lucide-react";
+import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer, Camera, Upload, Trash2, User, Image, Loader2 } from "lucide-react";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { storage } from "../lib/firebase";
 
 interface CandidateFormProps {
   candidate?: Candidate | null; // If null, we are adding new
   positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason';
+  activeProfile?: any;
   onSave: (candidate: Candidate) => void;
   onCancel: () => void;
 }
@@ -13,6 +16,7 @@ interface CandidateFormProps {
 export default function CandidateForm({
   candidate,
   positionId,
+  activeProfile,
   onSave,
   onCancel,
 }: CandidateFormProps) {
@@ -26,13 +30,17 @@ export default function CandidateForm({
   const [passportNumber, setPassportNumber] = useState(initialCandidate?.passportNumber || "");
   const [photoUrl, setPhotoUrl] = useState(initialCandidate?.photoUrl || "");
   const [date, setDate] = useState(initialCandidate?.date || new Date().toISOString().split("T")[0]);
-  const [assessor, setAssessor] = useState(initialCandidate?.assessor || "");
+  const [assessor, setAssessor] = useState(initialCandidate?.assessor || activeProfile?.engineerName || "");
+  const [projectName, setProjectName] = useState(initialCandidate?.projectName || activeProfile?.projectName || "Default Project");
+  const [requirementCompany, setRequirementCompany] = useState(initialCandidate?.requirementCompany || "");
   const [contact, setContact] = useState(initialCandidate?.contact || "");
 
-  // Camera states
+  // Camera & Upload states
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -44,6 +52,7 @@ export default function CandidateForm({
 
   const startCamera = async () => {
     setCameraError(null);
+    setUploadSuccess(null);
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user" },
@@ -71,6 +80,72 @@ export default function CandidateForm({
     setCameraActive(false);
   };
 
+  const compressImage = (dataUrl: string, maxWidth = 180, maxHeight = 180): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", 0.75));
+        } else {
+          resolve(dataUrl);
+        }
+      };
+      img.onerror = () => {
+        resolve(dataUrl);
+      };
+      img.src = dataUrl;
+    });
+  };
+
+  const handlePhotoUploadProcess = async (dataUrl: string) => {
+    setUploading(true);
+    setCameraError(null);
+    setUploadSuccess(null);
+    try {
+      // Create a unique reference in Firebase Storage
+      const filename = `candidates/profile_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}.jpg`;
+      const storageRef = ref(storage, filename);
+      await uploadString(storageRef, dataUrl, "data_url");
+      const downloadUrl = await getDownloadURL(storageRef);
+      setPhotoUrl(downloadUrl);
+      setUploadSuccess("Photo uploaded successfully to Cloud Storage!");
+    } catch (err: any) {
+      console.warn("Firebase Storage upload failed, falling back to local compressed storage:", err);
+      try {
+        // Compress the image to fit in Firestore safely
+        const compressedBase64 = await compressImage(dataUrl);
+        setPhotoUrl(compressedBase64);
+        setUploadSuccess("Photo saved locally as compressed attachment.");
+      } catch (fallbackErr) {
+        console.error("Image compression failed:", fallbackErr);
+        setPhotoUrl(dataUrl);
+        setUploadSuccess("Photo saved as raw attachment.");
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const capturePhoto = () => {
     const videoElement = document.getElementById("candidate-video") as HTMLVideoElement;
     if (videoElement) {
@@ -81,8 +156,8 @@ export default function CandidateForm({
       if (ctx) {
         ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
         const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-        setPhotoUrl(dataUrl);
         stopCamera();
+        handlePhotoUploadProcess(dataUrl);
       }
     }
   };
@@ -92,13 +167,14 @@ export default function CandidateForm({
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPhotoUrl(reader.result as string);
+        handlePhotoUploadProcess(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
   // Section 1: Experience & Quals (Marks out of 100)
+
   const [s1_siteExperience, setS1SiteExperience] = useState<number | "">(
     initialCandidate ? initialCandidate.s1_siteExperience : 0
   );
@@ -250,6 +326,8 @@ export default function CandidateForm({
       photoUrl: photoUrl || "",
       date,
       assessor: assessor.trim() || "Assessor",
+      projectName: projectName.trim() || "Default Project",
+      requirementCompany: requirementCompany.trim(),
       contact: contact.trim() || "+94 77 000 0000",
       s1_siteExperience: num(s1_siteExperience),
       s1_nvqQualification: num(s1_nvqQualification),
@@ -331,12 +409,23 @@ export default function CandidateForm({
               Candidate Photo Attachment
             </label>
             
-            {photoUrl ? (
+            {uploading ? (
+              <div className="w-full max-w-sm mx-auto p-6 border-2 border-dashed border-indigo-200 rounded-2xl bg-indigo-50/20 flex flex-col items-center justify-center text-center space-y-3 min-h-[144px]">
+                <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+                <div>
+                  <p className="text-xs font-bold text-slate-700">Uploading Profile Picture...</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Please wait while the image is securely processed</p>
+                </div>
+              </div>
+            ) : photoUrl ? (
               <div className="relative w-36 h-36 mx-auto rounded-2xl overflow-hidden border-2 border-indigo-100 shadow-3xs bg-slate-100 group">
                 <img referrerPolicy="no-referrer" src={photoUrl} alt="Candidate Preview" className="w-full h-full object-cover" />
                 <button
                   type="button"
-                  onClick={() => setPhotoUrl("")}
+                  onClick={() => {
+                    setPhotoUrl("");
+                    setUploadSuccess(null);
+                  }}
                   className="absolute bottom-2 right-2 p-1.5 bg-rose-600 text-white hover:bg-rose-700 rounded-lg shadow-sm transition-all cursor-pointer hover:scale-105"
                   title="Remove photo"
                 >
@@ -398,6 +487,13 @@ export default function CandidateForm({
                 </div>
               </div>
             )}
+            
+            {uploadSuccess && (
+              <p className="text-[10px] text-emerald-600 font-extrabold text-center mt-2.5 bg-emerald-50 border border-emerald-100 py-1.5 px-3 rounded-lg max-w-sm mx-auto animate-fadeIn">
+                {uploadSuccess}
+              </p>
+            )}
+
           </div>
 
           <div className="space-y-4">
@@ -488,6 +584,48 @@ export default function CandidateForm({
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 transition-all font-semibold appearance-none"
                 />
                 <Calendar className="w-4 h-4 text-slate-500 absolute right-4 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Project Name, Assessor and Requirement Company */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                  Project Name
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={projectName}
+                  className="w-full px-4 py-3 border border-slate-100 rounded-xl text-sm bg-slate-50 text-slate-500 font-bold focus:outline-none select-none"
+                  title="Your active project is pre-selected and locked"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                  Assessor Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter assessor name"
+                  value={assessor}
+                  onChange={(e) => setAssessor(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 transition-all font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                  Requirement Company Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Sanken Overseas, Sobha"
+                  value={requirementCompany}
+                  onChange={(e) => setRequirementCompany(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 transition-all font-semibold"
+                />
               </div>
             </div>
           </div>

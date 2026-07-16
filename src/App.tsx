@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, writeBatch } from "firebase/firestore";
+import { collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, writeBatch, query, where } from "firebase/firestore";
 import { auth, db } from "./lib/firebase";
 import { Candidate } from "./types";
 import { INITIAL_CANDIDATES } from "./mockData";
@@ -13,12 +13,25 @@ import CandidateDetail from "./components/CandidateDetail";
 import CandidateForm from "./components/CandidateForm";
 import LoginPage from "./components/LoginPage";
 import AdminPage from "./components/AdminPage";
-import { RotateCcw, Download, Wifi, Battery, Signal, Shield, LogOut } from "lucide-react";
+import MobileRestricted from "./components/MobileRestricted";
+import { RotateCcw, Download, Wifi, Battery, Signal, Shield, LogOut, Landmark, UserCheck, ArrowRight, Sparkles } from "lucide-react";
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  
+  // Project profile states
+  const [activeProfile, setActiveProfile] = useState<any>(null);
+  const [availableProfiles, setAvailableProfiles] = useState<any[]>([]);
+
+  // Mobile device restriction logic for non-admins
+  const [isMobile, setIsMobile] = useState(() => {
+    const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
+    return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ua);
+  });
+  const [bypassMobileCheck, setBypassMobileCheck] = useState(false);
 
   useEffect(() => {
     let unsubscribeProfile: (() => void) | null = null;
@@ -29,25 +42,69 @@ export default function App() {
         const email = currentUser.email.trim().toLowerCase();
         if (email === "admin@sankenoverseas.com") {
           setIsAdmin(true);
+          setActiveProfile({
+            id: "admin",
+            email: "admin@sankenoverseas.com",
+            role: "Admin",
+            projectName: "All Projects",
+            engineerName: "Master Admin"
+          });
           setLoading(false);
         } else {
-          const docRef = doc(db, "user_profiles", email);
-          unsubscribeProfile = onSnapshot(docRef, (docSnap) => {
-            if (docSnap.exists()) {
+          // Query user profiles where email matches to get all available projects
+          const q = query(collection(db, "user_profiles"), where("email", "==", email));
+          unsubscribeProfile = onSnapshot(q, (snapshot) => {
+            const list: any[] = [];
+            let isUserAdmin = false;
+            snapshot.forEach((docSnap) => {
               const data = docSnap.data();
-              setIsAdmin(data.role === "Admin");
+              list.push({ id: docSnap.id, ...data });
+              if (data.role === "Admin") {
+                isUserAdmin = true;
+              }
+            });
+
+            setIsAdmin(isUserAdmin);
+
+            if (list.length === 0) {
+              // No user profile exists yet in DB (e.g. deleted by Admin)
+              signOut(auth);
+              setActiveProfile(null);
+              setAvailableProfiles([]);
+              setLoading(false);
+              return;
+            }
+
+            setAvailableProfiles(list);
+
+            // Read the active profile from cache
+            const cached = localStorage.getItem("active_profile");
+            let parsedCached = cached ? JSON.parse(cached) : null;
+
+            // Verify cached profile is still valid (in the retrieved profile list)
+            let validCached = parsedCached ? list.find((p) => p.id === parsedCached.id) : null;
+
+            if (validCached) {
+              setActiveProfile(validCached);
+              localStorage.setItem("active_profile", JSON.stringify(validCached));
+            } else if (list.length === 1) {
+              setActiveProfile(list[0]);
+              localStorage.setItem("active_profile", JSON.stringify(list[0]));
             } else {
-              setIsAdmin(false);
+              // Multiple profiles found but none cached yet - user must select
+              setActiveProfile(null);
             }
             setLoading(false);
           }, (error) => {
-            console.error("Error reading user profile:", error);
+            console.error("Error reading user profiles:", error);
             setIsAdmin(false);
             setLoading(false);
           });
         }
       } else {
         setIsAdmin(false);
+        setActiveProfile(null);
+        setAvailableProfiles([]);
         setLoading(false);
       }
     });
@@ -68,18 +125,66 @@ export default function App() {
     );
   }
 
+  const viewPortal = searchParams.get("view") === "portal";
+  const showMobileCheck = user && !isAdmin && !isMobile && !bypassMobileCheck;
+
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" /> : <LoginPage />} />
-      <Route path="/" element={user ? <MainApp isAdmin={isAdmin} /> : <Navigate to="/login" />} />
+      <Route
+        path="/"
+        element={
+          showMobileCheck ? (
+            <MobileRestricted
+              onBypass={() => setBypassMobileCheck(true)}
+              onLogout={() => signOut(auth)}
+              userEmail={user?.email}
+            />
+          ) : user ? (
+            !activeProfile ? (
+              <ProjectSelectionScreen
+                profiles={availableProfiles}
+                onSelect={(p) => {
+                  setActiveProfile(p);
+                  localStorage.setItem("active_profile", JSON.stringify(p));
+                }}
+                onLogout={() => {
+                  signOut(auth);
+                  setActiveProfile(null);
+                  localStorage.removeItem("active_profile");
+                }}
+              />
+            ) : (isAdmin && !viewPortal) ? (
+              <Navigate to="/admin" replace />
+            ) : (
+              <MainApp isAdmin={isAdmin} activeProfile={activeProfile} onSwitchProfile={() => {
+                setActiveProfile(null);
+                localStorage.removeItem("active_profile");
+              }} />
+            )
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
       <Route path="/admin" element={(user && isAdmin) ? <AdminPage /> : (user ? <Navigate to="/" /> : <Navigate to="/login" />)} />
     </Routes>
   );
 }
 
-function MainApp({ isAdmin }: { isAdmin: boolean }) {
+function MainApp({
+  isAdmin,
+  activeProfile,
+  onSwitchProfile
+}: {
+  isAdmin: boolean;
+  activeProfile: any;
+  onSwitchProfile: () => void;
+}) {
   const navigate = useNavigate();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [filterByProject, setFilterByProject] = useState(activeProfile?.id !== "admin");
+
   const [selectedRole, setSelectedRole] = useState<'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason' | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
@@ -87,6 +192,15 @@ function MainApp({ isAdmin }: { isAdmin: boolean }) {
   const [formSource, setFormSource] = useState<'select' | 'list'>('select');
 
   const [currentTime, setCurrentTime] = useState("");
+
+  const filteredCandidates = candidates.filter((c) => {
+    if (filterByProject && activeProfile?.projectName && activeProfile.id !== "admin") {
+      const cProject = (c.projectName || "").trim().toLowerCase();
+      const pProject = (activeProfile.projectName || "").trim().toLowerCase();
+      return cProject === pProject;
+    }
+    return true;
+  });
 
   useEffect(() => {
     const updateTime = () => {
@@ -222,20 +336,36 @@ function MainApp({ isAdmin }: { isAdmin: boolean }) {
         </div>
 
         {/* Unified Top Navigation Header */}
-        <div className="bg-white border-b border-slate-100 px-4 py-2.5 shrink-0 flex items-center justify-between no-print shadow-4xs">
+        <div className="bg-white border-b border-slate-100 px-4 py-2 shrink-0 flex items-center justify-between no-print shadow-4xs">
           <div>
-            <h1 className="text-xs font-black text-slate-900 tracking-tight">Sanken Trades</h1>
-            <p className="text-[8px] font-bold text-slate-400 font-mono leading-none mt-0.5 max-w-[150px] truncate">
-              {auth.currentUser?.email}
-            </p>
+            <h1 className="text-xs font-black text-slate-900 tracking-tight leading-none">Sanken Trades</h1>
+            <div className="flex flex-col gap-0.5 mt-1">
+              <p className="text-[9px] font-black text-slate-700 leading-none flex items-center gap-0.5">
+                <Landmark className="w-2.5 h-2.5 text-slate-500 shrink-0" />
+                <span className="truncate max-w-[120px]">{activeProfile?.projectName || "All Projects"}</span>
+              </p>
+              <p className="text-[8px] font-extrabold text-slate-400 leading-none truncate max-w-[120px]">
+                {activeProfile?.engineerName || auth.currentUser?.email}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
+            {activeProfile?.id !== "admin" && (
+              <button
+                onClick={onSwitchProfile}
+                className="p-1 px-1.5 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-0.5 text-[9px] font-bold border border-slate-100 shadow-3xs"
+                title="Switch Project"
+              >
+                <RotateCcw className="w-2.5 h-2.5 text-slate-500" />
+                <span>Switch</span>
+              </button>
+            )}
             {isAdmin && (
               <button
                 onClick={() => navigate("/admin")}
-                className="p-1.5 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-1 text-[9px] font-extrabold border border-slate-100 shadow-3xs"
+                className="p-1 px-1.5 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-0.5 text-[9px] font-bold border border-slate-100 shadow-3xs"
               >
-                <Shield className="w-3 h-3 text-slate-600" />
+                <Shield className="w-2.5 h-2.5 text-slate-600" />
                 <span>Admin</span>
               </button>
             )}
@@ -244,16 +374,36 @@ function MainApp({ isAdmin }: { isAdmin: boolean }) {
                 signOut(auth);
                 navigate("/login");
               }}
-              className="p-1.5 hover:bg-rose-50 text-rose-500 hover:text-rose-600 rounded-lg transition-all active:scale-95 cursor-pointer border border-rose-50/50"
+              className="p-1 hover:bg-rose-50 text-rose-500 hover:text-rose-600 rounded-lg transition-all active:scale-95 cursor-pointer border border-rose-50/50"
               title="Sign Out"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-3 h-3" />
             </button>
           </div>
         </div>
 
         {/* Content Screens */}
         <div className="flex-1 bg-slate-50 flex flex-col overflow-hidden relative">
+          {/* Project Context Toggle Bar */}
+          {activeProfile && activeProfile.id !== "admin" && (
+            <div className="bg-white px-4 py-2 border-b border-slate-100 flex items-center justify-between no-print shrink-0 text-2xs shadow-4xs select-none">
+              <div className="flex items-center gap-1 text-slate-700 font-extrabold text-[10px]">
+                <Landmark className="w-3.5 h-3.5 text-slate-500" />
+                <span>Project: {activeProfile.projectName}</span>
+              </div>
+              <button
+                onClick={() => setFilterByProject(!filterByProject)}
+                className={`px-2.5 py-1 rounded-lg text-[9px] font-black transition-all cursor-pointer active:scale-95 ${
+                  filterByProject
+                    ? "bg-slate-900 text-white shadow-3xs"
+                    : "bg-slate-100 hover:bg-slate-200/80 text-slate-600"
+                }`}
+              >
+                {filterByProject ? "My Project Only" : "Show All Projects"}
+              </button>
+            </div>
+          )}
+
           {screen === 'position_select' && (
             <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col justify-between">
               <PositionSelect
@@ -288,10 +438,10 @@ function MainApp({ isAdmin }: { isAdmin: boolean }) {
 
           {screen === 'candidate_list' && selectedRole && (
             <div className="flex flex-col h-full overflow-hidden">
-              <DashboardStats candidates={candidates} positionId={selectedRole} />
+              <DashboardStats candidates={filteredCandidates} positionId={selectedRole} />
               <div className="flex-1 overflow-hidden">
                 <CandidateList
-                  candidates={candidates}
+                  candidates={filteredCandidates}
                   selectedId={selectedId}
                   positionId={selectedRole}
                   onSelect={(id) => {
@@ -331,6 +481,7 @@ function MainApp({ isAdmin }: { isAdmin: boolean }) {
               <CandidateForm
                 candidate={editingCandidate}
                 positionId={selectedRole}
+                activeProfile={activeProfile}
                 onSave={handleSaveCandidate}
                 onCancel={() => {
                   if (editingCandidate) setScreen('candidate_detail');
@@ -344,6 +495,80 @@ function MainApp({ isAdmin }: { isAdmin: boolean }) {
         </div>
 
         <div className="hidden sm:block absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-slate-700/60 rounded-full z-50"></div>
+      </div>
+    </div>
+  );
+}
+
+function ProjectSelectionScreen({
+  profiles,
+  onSelect,
+  onLogout
+}: {
+  profiles: any[];
+  onSelect: (p: any) => void;
+  onLogout: () => void;
+}) {
+  return (
+    <div className="min-h-[100dvh] bg-slate-900 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none">
+      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-slate-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden sm:border-[10px] sm:border-slate-800 relative">
+        <div className="bg-slate-900 text-slate-300 px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
+          <span className="font-semibold">9:41 AM</span>
+          <div className="flex items-center space-x-1.5">
+            <Signal className="w-3.5 h-3.5 text-slate-300" />
+            <Wifi className="w-3.5 h-3.5 text-slate-300" />
+            <Battery className="w-4 h-4 text-slate-300" />
+          </div>
+        </div>
+
+        <div className="flex-1 bg-slate-50 flex flex-col justify-between overflow-y-auto custom-scrollbar p-6">
+          <div className="my-auto space-y-6">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center mx-auto shadow-md">
+                <Landmark className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-xl font-black text-slate-900 tracking-tight">Sanken Projects</h1>
+              <p className="text-xs text-slate-500 font-semibold">
+                Select your active project profile:
+              </p>
+            </div>
+
+            <div className="space-y-2.5 max-h-[350px] overflow-y-auto custom-scrollbar pr-1">
+              {profiles.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => onSelect(p)}
+                  className="w-full text-left bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 p-4 rounded-xl transition-all active:scale-98 cursor-pointer flex items-center justify-between group shadow-3xs"
+                >
+                  <div className="space-y-1 pr-2">
+                    <p className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                      <Landmark className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                      <span>{p.projectName || "Default Project"}</span>
+                    </p>
+                    {p.engineerName && (
+                      <p className="text-[10px] text-slate-500 font-bold flex items-center gap-1.5">
+                        <UserCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{p.engineerName}</span>
+                      </p>
+                    )}
+                    <span className="inline-block bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wide mt-1">
+                      {p.role}
+                    </span>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-colors shrink-0" />
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={onLogout}
+              className="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-extrabold transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out of Account</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
