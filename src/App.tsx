@@ -361,6 +361,10 @@ function MainApp({
   };
 
   const handleClearAllData = async () => {
+    if (!isAdmin) {
+      alert("Only administrators can clear database assessments.");
+      return;
+    }
     if (window.confirm("Are you sure you want to delete all candidate assessments? This cannot be undone.")) {
       try {
         setSyncStatus('syncing');
@@ -614,14 +618,16 @@ function MainApp({
               }`}>
                 <div className="flex items-center justify-between text-2xs text-slate-500">
                   <span className={`font-bold font-mono text-[9px] transition-colors ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>EXPORTS:</span>
-                  <button onClick={handleClearAllData} className={`flex items-center space-x-1.5 transition-colors py-1 px-2 border rounded-lg shadow-3xs cursor-pointer active:scale-95 font-bold text-[10px] ${
-                    darkMode
-                      ? 'bg-slate-850 hover:bg-slate-800 text-rose-400 border-rose-950/40'
-                      : 'bg-white hover:text-rose-600 border-rose-100 text-rose-500'
-                  }`}>
-                    <Trash2 className="w-3 h-3 text-rose-400" />
-                    <span>Clear All Data</span>
-                  </button>
+                  {isAdmin && (
+                    <button onClick={handleClearAllData} className={`flex items-center space-x-1.5 transition-colors py-1 px-2 border rounded-lg shadow-3xs cursor-pointer active:scale-95 font-bold text-[10px] ${
+                      darkMode
+                        ? 'bg-slate-850 hover:bg-slate-800 text-rose-400 border-rose-950/40'
+                        : 'bg-white hover:text-rose-600 border-rose-100 text-rose-500'
+                    }`}>
+                      <Trash2 className="w-3 h-3 text-rose-400" />
+                      <span>Clear All Data</span>
+                    </button>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={handleExportExcel} className={`flex items-center justify-center space-x-1.5 transition-all py-1.5 px-2 rounded-lg shadow-3xs cursor-pointer active:scale-95 font-black text-[10px] ${
