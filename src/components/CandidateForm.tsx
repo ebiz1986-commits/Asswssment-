@@ -73,7 +73,7 @@ export default function CandidateForm({
     setUploadSuccess(null);
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
+        video: { facingMode: "environment" },
         audio: false
       });
       setStream(mediaStream);
