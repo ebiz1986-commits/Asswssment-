@@ -574,7 +574,7 @@ export default function AdminPage() {
                       const color = colors[index % colors.length];
                       return (
                         <div key={pos.id} className="space-y-1">
-                          <div className="flex justify-between text-2xs font-extrabold text-slate-700">
+                          <div className="flex justify-between text-[11px] font-bold text-slate-700">
                             <span>{pos.title}</span>
                             <span className="font-mono text-slate-500">{count} candidates ({pct}%)</span>
                           </div>
