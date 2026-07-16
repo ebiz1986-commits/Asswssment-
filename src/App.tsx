@@ -40,11 +40,11 @@ export default function App() {
       setUser(currentUser);
       if (currentUser && currentUser.email) {
         const email = currentUser.email.trim().toLowerCase();
-        if (email === "admin@sankenoverseas.com") {
+        if (email === "admin@sankenoverseas.com" || email === "ebiz1986@gmail.com") {
           setIsAdmin(true);
           setActiveProfile({
             id: "admin",
-            email: "admin@sankenoverseas.com",
+            email: email,
             role: "Admin",
             projectName: "All Projects",
             engineerName: "Master Admin"

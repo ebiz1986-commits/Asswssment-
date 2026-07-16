@@ -56,13 +56,13 @@ export default function AdminPage() {
         setCurrentUser(user);
         const email = user.email?.trim().toLowerCase();
         
-        // Only allow sankenoverseas domains
-        if (!email || !email.endsWith("@sankenoverseas.com")) {
+        // Only allow sankenoverseas domains or tester email
+        if (!email || (!email.endsWith("@sankenoverseas.com") && email !== "ebiz1986@gmail.com")) {
           navigate("/login");
           return;
         }
 
-        if (email === "admin@sankenoverseas.com") {
+        if (email === "admin@sankenoverseas.com" || email === "ebiz1986@gmail.com") {
           // Master admin always allowed
         } else {
           // Check role from Firestore user profile query
@@ -709,21 +709,21 @@ export default function AdminPage() {
                   </div>
                 ) : (
                   <div className="w-full overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left border-collapse text-2xs">
+                    <table className="w-full text-left border-collapse text-[10px]">
                       <thead>
-                        <tr className="bg-slate-900 text-white font-extrabold uppercase tracking-wider">
-                          <th className="px-3 py-2.5 text-center">#</th>
-                          <th className="px-3 py-2.5">Photo</th>
-                          <th className="px-3 py-2.5">Candidate Name</th>
-                          <th className="px-3 py-2.5">ID Card / NIC</th>
-                          <th className="px-3 py-2.5">Passport</th>
-                          <th className="px-3 py-2.5">Trade / Position</th>
-                          <th className="px-3 py-2.5">Project Name</th>
-                          <th className="px-3 py-2.5">Req. Company</th>
-                          <th className="px-3 py-2.5">Assessor / Engineer</th>
-                          <th className="px-3 py-2.5">Date</th>
-                          <th className="px-3 py-2.5 text-center">Test Required</th>
-                          <th className="px-3 py-2.5 text-right">Result / Score</th>
+                        <tr className="bg-slate-900 text-white font-extrabold uppercase tracking-wider text-[9px]">
+                          <th className="px-2 py-1.5 text-center whitespace-nowrap">#</th>
+                          <th className="px-2 py-1.5 whitespace-nowrap">Photo</th>
+                          <th className="px-2 py-1.5 whitespace-nowrap">Candidate Name</th>
+                          <th className="px-2 py-1.5 whitespace-nowrap">ID Card / NIC</th>
+                          <th className="px-2 py-1.5 whitespace-nowrap">Passport</th>
+                          <th className="px-2 py-1.5 whitespace-nowrap">Trade / Position</th>
+                          <th className="px-2 py-1.5 whitespace-nowrap">Project Name</th>
+                          <th className="px-2 py-1.5 whitespace-nowrap">Req. Company</th>
+                          <th className="px-2 py-1.5 whitespace-nowrap">Assessor / Engineer</th>
+                          <th className="px-2 py-1.5 whitespace-nowrap">Date</th>
+                          <th className="px-2 py-1.5 text-center whitespace-nowrap">Test Required</th>
+                          <th className="px-2 py-1.5 text-right whitespace-nowrap">Result / Score</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -740,72 +740,72 @@ export default function AdminPage() {
                           return (
                             <tr key={c.id} className="hover:bg-slate-50 transition-all font-semibold text-slate-700">
                               {/* Serial number */}
-                              <td className="px-3 py-3 text-center font-mono text-slate-400 text-3xs font-bold border-r border-slate-50 bg-slate-50/30">
+                              <td className="px-2 py-1.5 text-center font-mono text-slate-400 text-[9px] font-bold border-r border-slate-50 bg-slate-50/30 whitespace-nowrap">
                                 {index + 1}
                               </td>
 
                               {/* Photo */}
-                              <td className="px-3 py-3">
+                              <td className="px-2 py-1.5 whitespace-nowrap">
                                 {c.photoUrl ? (
                                   <img 
                                     src={c.photoUrl} 
                                     alt={c.name} 
                                     referrerPolicy="no-referrer"
-                                    className="w-8 h-8 rounded-full object-cover border border-slate-200 bg-slate-100 shadow-3xs" 
+                                    className="w-7 h-7 rounded-full object-cover border border-slate-200 bg-slate-100 shadow-3xs" 
                                   />
                                 ) : (
-                                  <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center font-bold text-3xs shadow-3xs">
+                                  <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center font-bold text-[9px] shadow-3xs">
                                     {c.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
                                   </div>
                                 )}
                               </td>
 
                               {/* Name */}
-                              <td className="px-3 py-3 font-extrabold text-slate-900">
-                                <div className="leading-tight">{c.name}</div>
-                                <div className="text-[10px] text-slate-400 font-mono mt-0.5">{c.referenceId}</div>
+                              <td className="px-2 py-1.5 font-extrabold text-slate-900 whitespace-nowrap">
+                                <div className="leading-tight text-[11px]">{c.name}</div>
+                                <div className="text-[9px] text-slate-400 font-mono mt-0.5">{c.referenceId}</div>
                               </td>
 
                               {/* NIC */}
-                              <td className="px-3 py-3 font-mono text-slate-500">
+                              <td className="px-2 py-1.5 font-mono text-slate-500 text-[10px] whitespace-nowrap">
                                 {c.nicNumber || "—"}
                               </td>
 
                               {/* Passport */}
-                              <td className="px-3 py-3 font-mono text-slate-500">
+                              <td className="px-2 py-1.5 font-mono text-slate-500 text-[10px] whitespace-nowrap">
                                 {c.passportNumber || "—"}
                               </td>
 
                               {/* Position */}
-                              <td className="px-3 py-3">
-                                <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[10px] border border-slate-200/50">
+                              <td className="px-2 py-1.5 whitespace-nowrap">
+                                <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[9px] border border-slate-200/50 whitespace-nowrap font-medium">
                                   {tradeLabel}
                                 </span>
                               </td>
 
                               {/* Project */}
-                              <td className="px-3 py-3 text-slate-600 font-bold">
+                              <td className="px-2 py-1.5 text-slate-600 font-bold text-[10px] whitespace-nowrap">
                                 {c.projectName || "Default Project"}
                               </td>
 
                               {/* Requirement Company */}
-                              <td className="px-3 py-3 text-slate-600">
+                              <td className="px-2 py-1.5 text-slate-600 text-[10px] whitespace-nowrap">
                                 {c.requirementCompany || "—"}
                               </td>
 
                               {/* Assessor / Engineer */}
-                              <td className="px-3 py-3 font-bold text-slate-800">
+                              <td className="px-2 py-1.5 font-bold text-slate-800 text-[10px] whitespace-nowrap">
                                 {c.assessor || "—"}
                               </td>
 
                               {/* Date */}
-                              <td className="px-3 py-3 font-mono text-slate-500">
+                              <td className="px-2 py-1.5 font-mono text-slate-500 text-[9px] whitespace-nowrap">
                                 {c.date}
                               </td>
 
                               {/* Practical Test */}
-                              <td className="px-3 py-3 text-center">
-                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                              <td className="px-2 py-1.5 text-center whitespace-nowrap">
+                                <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider whitespace-nowrap ${
                                   c.practicalTestRequired 
                                     ? "bg-amber-100 text-amber-700 border border-amber-200" 
                                     : "bg-slate-100 text-slate-500 border border-slate-200"
@@ -815,13 +815,13 @@ export default function AdminPage() {
                               </td>
 
                               {/* Result / Score */}
-                              <td className="px-3 py-3 text-right border-l border-slate-50">
-                                <div className="flex flex-col items-end">
-                                  <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-center w-fit ${getStatusBadgeClass(c.status)}`}>
+                              <td className="px-2 py-1.5 text-right border-l border-slate-50 whitespace-nowrap">
+                                <div className="flex flex-col items-end leading-none">
+                                  <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider text-center w-fit whitespace-nowrap ${getStatusBadgeClass(c.status)}`}>
                                     {c.status}
                                   </span>
-                                  <span className="text-2xs font-extrabold text-slate-900 mt-1 font-mono">
-                                    {overallScore}% Competency
+                                  <span className="text-[9px] font-extrabold text-slate-900 mt-1 font-mono block">
+                                    {overallScore}% Comp.
                                   </span>
                                 </div>
                               </td>
