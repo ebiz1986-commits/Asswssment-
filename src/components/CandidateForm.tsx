@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import { Candidate, POSITIONS, getPositionRubrics } from "../types";
-import { migrateCandidateToHundredScale } from "../utils";
-import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer, Camera, Upload, Trash2, User, Image, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { migrateCandidateToHundredScale, calculateOverallScore } from "../utils";
+import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer, Camera, Upload, Trash2, User, Image, Loader2, ChevronDown, ChevronUp, AlertCircle, CheckCircle, HelpCircle } from "lucide-react";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
@@ -10,6 +10,7 @@ interface CandidateFormProps {
   candidate?: Candidate | null; // If null, we are adding new
   positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason' | 'rigger' | 'shoutering_carpenter' | 'spray_painter' | 'survey_helper' | 'tile_mason' | 'wall_painter';
   activeProfile?: any;
+  candidates?: Candidate[];
   onSave: (candidate: Candidate) => void;
   onCancel: () => void;
 }
@@ -18,6 +19,7 @@ export default function CandidateForm({
   candidate,
   positionId,
   activeProfile,
+  candidates = [],
   onSave,
   onCancel,
 }: CandidateFormProps) {
@@ -549,6 +551,53 @@ export default function CandidateForm({
                   onChange={(e) => setNicNumber(e.target.value)}
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-all font-semibold"
                 />
+                
+                {nicNumber.trim().length >= 4 && (() => {
+                  const trimmed = nicNumber.trim().toLowerCase();
+                  const match = (candidates || [])
+                    .filter(c => c.id !== initialCandidate?.id && c.nicNumber?.trim().toLowerCase() === trimmed)
+                    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))[0];
+
+                  if (match) {
+                    const score = calculateOverallScore(match);
+                    const passed = score > 59;
+                    return (
+                      <div className="mt-2 text-[11px] font-bold leading-normal transition-all animate-fadeIn">
+                        <div className={`p-2.5 rounded-lg border flex items-start gap-2 ${
+                          passed 
+                            ? "bg-emerald-50 text-emerald-800 border-emerald-200/80" 
+                            : "bg-rose-50 text-rose-800 border-rose-200/80"
+                        }`}>
+                          {passed ? (
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                          ) : (
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
+                          )}
+                          <div>
+                            <p className="font-extrabold uppercase tracking-wide text-[9px] mb-0.5">
+                              Previous Result: {passed ? "Pass" : "Fail"}
+                            </p>
+                            <p className="text-slate-600 font-medium">
+                              Candidate <span className="font-bold text-slate-800">{match.name}</span> previously scored <span className="font-extrabold text-slate-800">{score}%</span> on {match.date} for {POSITIONS.find(p => p.id === match.positionId)?.title || match.positionId}.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="mt-2 text-[11px] font-bold leading-normal transition-all animate-fadeIn">
+                      <div className="p-2.5 rounded-lg border bg-blue-50/50 text-blue-800 border-blue-100/60 flex items-center gap-2">
+                        <HelpCircle className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                        <div>
+                          <p className="font-extrabold uppercase tracking-wide text-[9px] mb-0.5">Interview Status</p>
+                          <p className="text-blue-700/90 font-extrabold">First Time Interview</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Passport Number */}

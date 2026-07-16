@@ -14,7 +14,7 @@ import CandidateForm from "./components/CandidateForm";
 import LoginPage from "./components/LoginPage";
 import AdminPage from "./components/AdminPage";
 import MobileRestricted from "./components/MobileRestricted";
-import { RotateCcw, Download, Wifi, Battery, Signal, Shield, LogOut, Landmark, UserCheck, ArrowRight, Sparkles } from "lucide-react";
+import { RotateCcw, Download, Wifi, Battery, Signal, Shield, LogOut, Landmark, UserCheck, ArrowRight, Sparkles, WifiOff, RefreshCw } from "lucide-react";
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -202,6 +202,48 @@ function MainApp({
   const [formSource, setFormSource] = useState<'select' | 'list'>('select');
 
   const [currentTime, setCurrentTime] = useState("");
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline' | 'error'>(navigator.onLine ? 'synced' : 'offline');
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setSyncStatus('synced');
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      setSyncStatus('offline');
+    };
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const handleReSync = async () => {
+    if (!navigator.onLine) {
+      alert("You are currently offline. Please check your internet connection.");
+      return;
+    }
+    setSyncStatus('syncing');
+    try {
+      const snapshot = await getDocs(collection(db, "candidates"));
+      const list: Candidate[] = [];
+      snapshot.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() } as Candidate);
+      });
+      if (list.length > 0) {
+        list.sort((a, b) => b.id.localeCompare(a.id));
+        setCandidates(list);
+      }
+      setSyncStatus('synced');
+    } catch (err) {
+      console.error("Manual re-sync failed:", err);
+      setSyncStatus('error');
+    }
+  };
 
   const filteredCandidates = candidates.filter((c) => {
     if (filterByProject && activeProfile?.projectName && activeProfile.id !== "admin") {
@@ -228,6 +270,7 @@ function MainApp({
 
   // Listen to candidates in Firestore in real-time
   useEffect(() => {
+    setSyncStatus(navigator.onLine ? 'syncing' : 'offline');
     const unsubscribe = onSnapshot(collection(db, "candidates"), async (snapshot) => {
       const list: Candidate[] = [];
       snapshot.forEach((doc) => {
@@ -243,16 +286,20 @@ function MainApp({
             batch.set(docRef, cand);
           });
           await batch.commit();
+          setSyncStatus('synced');
         } catch (err) {
           console.error("Failed to seed candidates collection:", err);
+          setSyncStatus('error');
         }
       } else {
         // Sort descending by ID or date so newest assessments appear first
         list.sort((a, b) => b.id.localeCompare(a.id));
         setCandidates(list);
+        setSyncStatus('synced');
       }
     }, (error) => {
       console.error("Firestore candidates subscription error:", error);
+      setSyncStatus('error');
     });
 
     return unsubscribe;
@@ -340,7 +387,11 @@ function MainApp({
           <span className="font-semibold">{currentTime || "9:41 AM"}</span>
           <div className="flex items-center space-x-1.5">
             <Signal className="w-3.5 h-3.5 text-slate-300" />
-            <Wifi className="w-3.5 h-3.5 text-slate-300" />
+            {isOnline ? (
+              <Wifi className="w-3.5 h-3.5 text-slate-300" />
+            ) : (
+              <WifiOff className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+            )}
             <Battery className="w-4 h-4 text-slate-300" />
           </div>
         </div>
@@ -348,7 +399,30 @@ function MainApp({
         {/* Unified Top Navigation Header */}
         <div className="bg-white border-b border-slate-100 px-4 py-2 shrink-0 flex items-center justify-between no-print shadow-4xs">
           <div>
-            <h1 className="text-xs font-black text-slate-900 tracking-tight leading-none">Sanken Trades</h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-xs font-black text-slate-900 tracking-tight leading-none">Sanken Trades</h1>
+              {syncStatus === 'offline' || !isOnline ? (
+                <span className="flex items-center gap-0.5 text-[7px] font-black text-amber-700 bg-amber-50 border border-amber-100 px-1 py-0.5 rounded-full shrink-0" title="Device is offline">
+                  <WifiOff className="w-2 h-2 text-amber-500 animate-pulse" />
+                  <span>OFFLINE</span>
+                </span>
+              ) : syncStatus === 'syncing' ? (
+                <span className="flex items-center gap-0.5 text-[7px] font-black text-blue-700 bg-blue-50 border border-blue-100 px-1 py-0.5 rounded-full shrink-0" title="Syncing with Firestore...">
+                  <RefreshCw className="w-2 h-2 text-blue-500 animate-spin" />
+                  <span>SYNCING</span>
+                </span>
+              ) : syncStatus === 'error' ? (
+                <span className="flex items-center gap-0.5 text-[7px] font-black text-rose-700 bg-rose-50 border border-rose-100 px-1 py-0.5 rounded-full shrink-0" title="Sync error occurred">
+                  <WifiOff className="w-2 h-2 text-rose-500" />
+                  <span>ERROR</span>
+                </span>
+              ) : (
+                <span className="flex items-center gap-0.5 text-[7px] font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-1 py-0.5 rounded-full shrink-0" title="Synced with Firestore">
+                  <Wifi className="w-2 h-2 text-emerald-500" />
+                  <span>SYNCED</span>
+                </span>
+              )}
+            </div>
             <div className="flex flex-col gap-0.5 mt-1">
               <p className="text-[9px] font-black text-slate-700 leading-none flex items-center gap-0.5">
                 <Landmark className="w-2.5 h-2.5 text-slate-500 shrink-0" />
@@ -360,6 +434,15 @@ function MainApp({
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <button
+              onClick={handleReSync}
+              disabled={syncStatus === 'syncing'}
+              className="p-1 px-1.5 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-0.5 text-[9px] font-bold border border-slate-100 shadow-3xs disabled:opacity-50"
+              title="Manual Re-sync"
+            >
+              <RefreshCw className={`w-2.5 h-2.5 text-slate-500 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
+              <span>Sync</span>
+            </button>
             {activeProfile?.id !== "admin" && (
               <button
                 onClick={onSwitchProfile}
@@ -394,6 +477,12 @@ function MainApp({
 
         {/* Content Screens */}
         <div className="flex-1 bg-slate-50 flex flex-col overflow-hidden relative">
+          {(!isOnline || syncStatus === 'offline') && (
+            <div className="bg-amber-500 text-white px-4 py-1.5 text-center text-[10px] font-extrabold flex items-center justify-center gap-1.5 no-print shrink-0 shadow-sm animate-fade-in">
+              <WifiOff className="w-3 h-3 text-white animate-pulse" />
+              <span>Offline Mode — Changes will sync when connection is restored</span>
+            </div>
+          )}
           {/* Project Context Toggle Bar */}
           {activeProfile && activeProfile.id !== "admin" && (
             <div className="bg-white px-4 py-2 border-b border-slate-100 flex items-center justify-between no-print shrink-0 text-2xs shadow-4xs select-none">
@@ -492,6 +581,7 @@ function MainApp({
                 candidate={editingCandidate}
                 positionId={selectedRole}
                 activeProfile={activeProfile}
+                candidates={candidates}
                 onSave={handleSaveCandidate}
                 onCancel={() => {
                   if (editingCandidate) setScreen('candidate_detail');
