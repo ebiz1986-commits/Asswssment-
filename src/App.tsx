@@ -15,7 +15,7 @@ import LoginPage from "./components/LoginPage";
 import AdminPage from "./components/AdminPage";
 import MobileRestricted from "./components/MobileRestricted";
 import SankenLogo from "./components/SankenLogo";
-import { RotateCcw, Download, Wifi, Battery, Signal, Shield, LogOut, Landmark, UserCheck, ArrowRight, Sparkles, WifiOff, RefreshCw, Sun, Moon } from "lucide-react";
+import { RotateCcw, Download, Wifi, Battery, Signal, Shield, LogOut, Landmark, UserCheck, ArrowRight, Sparkles, WifiOff, RefreshCw, Sun, Moon, Trash2 } from "lucide-react";
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -25,7 +25,7 @@ export default function App() {
   
   // Dark mode option
   const [darkMode, setDarkMode] = useState<boolean>(() => {
-    return localStorage.getItem("sanken_dark_mode") === "true";
+    return localStorage.getItem("sanken_dark_mode") !== "false";
   });
 
   const toggleDarkMode = () => {
@@ -295,32 +295,37 @@ function MainApp({
   // Listen to candidates in Firestore in real-time
   useEffect(() => {
     setSyncStatus(navigator.onLine ? 'syncing' : 'offline');
-    const unsubscribe = onSnapshot(collection(db, "candidates"), async (snapshot) => {
+
+    // One-time fresh start check to clear existing mock/test data
+    const runFreshStart = async () => {
+      if (localStorage.getItem("sanken_fresh_started_v1") !== "true") {
+        try {
+          const snapshot = await getDocs(collection(db, "candidates"));
+          if (!snapshot.empty) {
+            const batch = writeBatch(db);
+            snapshot.forEach((d) => {
+              batch.delete(d.ref);
+            });
+            await batch.commit();
+          }
+          localStorage.setItem("sanken_fresh_started_v1", "true");
+        } catch (err) {
+          console.error("Error during one-time database clear:", err);
+        }
+      }
+    };
+    runFreshStart();
+
+    const unsubscribe = onSnapshot(collection(db, "candidates"), (snapshot) => {
       const list: Candidate[] = [];
-      snapshot.forEach((doc) => {
-        list.push({ id: doc.id, ...doc.data() } as Candidate);
+      snapshot.forEach((docSnap) => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as Candidate);
       });
       
-      if (list.length === 0) {
-        // Seeding initial data once if Firestore is completely empty
-        try {
-          const batch = writeBatch(db);
-          INITIAL_CANDIDATES.forEach((cand) => {
-            const docRef = doc(db, "candidates", cand.id);
-            batch.set(docRef, cand);
-          });
-          await batch.commit();
-          setSyncStatus('synced');
-        } catch (err) {
-          console.error("Failed to seed candidates collection:", err);
-          setSyncStatus('error');
-        }
-      } else {
-        // Sort descending by ID or date so newest assessments appear first
-        list.sort((a, b) => b.id.localeCompare(a.id));
-        setCandidates(list);
-        setSyncStatus('synced');
-      }
+      // Sort descending by ID or date so newest assessments appear first
+      list.sort((a, b) => b.id.localeCompare(a.id));
+      setCandidates(list);
+      setSyncStatus('synced');
     }, (error) => {
       console.error("Firestore candidates subscription error:", error);
       setSyncStatus('error');
@@ -355,18 +360,14 @@ function MainApp({
     }
   };
 
-  const handleResetToDemo = async () => {
-    if (window.confirm("Are you sure you want to restore the default candidate assessments?")) {
+  const handleClearAllData = async () => {
+    if (window.confirm("Are you sure you want to delete all candidate assessments? This cannot be undone.")) {
       try {
+        setSyncStatus('syncing');
         const snapshot = await getDocs(collection(db, "candidates"));
         const batch = writeBatch(db);
         snapshot.forEach((d) => {
           batch.delete(d.ref);
-        });
-        
-        INITIAL_CANDIDATES.forEach((cand) => {
-          const docRef = doc(db, "candidates", cand.id);
-          batch.set(docRef, cand);
         });
         await batch.commit();
 
@@ -374,9 +375,11 @@ function MainApp({
         setSelectedId(null);
         setScreen('position_select');
         setEditingCandidate(null);
+        setSyncStatus('synced');
       } catch (err) {
-        console.error("Reset demo error:", err);
-        alert("Failed to restore default assessments.");
+        console.error("Clear database error:", err);
+        alert("Failed to clear database.");
+        setSyncStatus('error');
       }
     }
   };
@@ -611,13 +614,13 @@ function MainApp({
               }`}>
                 <div className="flex items-center justify-between text-2xs text-slate-500">
                   <span className={`font-bold font-mono text-[9px] transition-colors ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>EXPORTS:</span>
-                  <button onClick={handleResetToDemo} className={`flex items-center space-x-1.5 transition-colors py-1 px-2 border rounded-lg shadow-3xs cursor-pointer active:scale-95 font-bold text-[10px] ${
+                  <button onClick={handleClearAllData} className={`flex items-center space-x-1.5 transition-colors py-1 px-2 border rounded-lg shadow-3xs cursor-pointer active:scale-95 font-bold text-[10px] ${
                     darkMode
                       ? 'bg-slate-850 hover:bg-slate-800 text-rose-400 border-rose-950/40'
                       : 'bg-white hover:text-rose-600 border-rose-100 text-rose-500'
                   }`}>
-                    <RotateCcw className="w-3 h-3 text-rose-400" />
-                    <span>Reset Demo</span>
+                    <Trash2 className="w-3 h-3 text-rose-400" />
+                    <span>Clear All Data</span>
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
