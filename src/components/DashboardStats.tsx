@@ -6,9 +6,10 @@ import { Users, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 interface DashboardStatsProps {
   candidates: Candidate[];
   positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason' | 'rigger' | 'shoutering_carpenter' | 'spray_painter' | 'survey_helper' | 'tile_mason' | 'wall_painter';
+  darkMode?: boolean;
 }
 
-export default function DashboardStats({ candidates, positionId }: DashboardStatsProps) {
+export default function DashboardStats({ candidates, positionId, darkMode = false }: DashboardStatsProps) {
   const stats = useMemo(() => {
     // Filter candidates by current position
     const tradeCandidates = candidates.filter((c) => c.positionId === positionId);
@@ -41,36 +42,44 @@ export default function DashboardStats({ candidates, positionId }: DashboardStat
   }, [candidates, positionId]);
 
   return (
-    <div id="dashboard-stats-mobile" className="grid grid-cols-3 gap-2.5 p-3.5 bg-white border-b border-slate-100 shrink-0 no-print">
+    <div id="dashboard-stats-mobile" className={`grid grid-cols-3 gap-2.5 p-3.5 border-b shrink-0 no-print transition-colors duration-300 ${
+      darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'
+    }`}>
       
       {/* Total Assessed Bento Card */}
-      <div className="bg-slate-50/70 rounded-xl p-2.5 border border-slate-100 text-center flex flex-col justify-between shadow-3xs">
-        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest block">Assessed</span>
+      <div className={`rounded-xl p-2.5 border text-center flex flex-col justify-between shadow-3xs transition-colors duration-300 ${
+        darkMode ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50/70 border-slate-100'
+      }`}>
+        <span className={`text-[8px] font-bold uppercase tracking-widest block ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Assessed</span>
         <div className="my-1.5 flex items-center justify-center gap-1">
-          <Users className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-          <span className="text-sm font-black text-slate-900 leading-none">{stats.total}</span>
+          <Users className={`w-3.5 h-3.5 shrink-0 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
+          <span className={`text-sm font-black leading-none ${darkMode ? 'text-white' : 'text-slate-900'}`}>{stats.total}</span>
         </div>
-        <span className="text-[8px] text-slate-400 leading-none block">Total workers</span>
+        <span className={`text-[8px] leading-none block ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Total workers</span>
       </div>
 
       {/* Average Competency Bento Card */}
-      <div className="bg-slate-50/70 rounded-xl p-2.5 border border-slate-100 text-center flex flex-col justify-between shadow-3xs">
-        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest block">Avg Score</span>
+      <div className={`rounded-xl p-2.5 border text-center flex flex-col justify-between shadow-3xs transition-colors duration-300 ${
+        darkMode ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50/70 border-slate-100'
+      }`}>
+        <span className={`text-[8px] font-bold uppercase tracking-widest block ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Avg Score</span>
         <div className="my-1.5 flex items-center justify-center gap-1">
           <Sparkles className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-          <span className="text-sm font-black text-slate-900 leading-none">{stats.avgScore}%</span>
+          <span className={`text-sm font-black leading-none ${darkMode ? 'text-white' : 'text-slate-900'}`}>{stats.avgScore}%</span>
         </div>
-        <span className="text-[8px] text-slate-400 leading-none block">Comp level</span>
+        <span className={`text-[8px] leading-none block ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Comp level</span>
       </div>
 
       {/* Selection Rate Bento Card */}
-      <div className="bg-slate-50/70 rounded-xl p-2.5 border border-slate-100 text-center flex flex-col justify-between shadow-3xs">
-        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest block">Pass Rate</span>
+      <div className={`rounded-xl p-2.5 border text-center flex flex-col justify-between shadow-3xs transition-colors duration-300 ${
+        darkMode ? 'bg-slate-950/60 border-slate-800' : 'bg-slate-50/70 border-slate-100'
+      }`}>
+        <span className={`text-[8px] font-bold uppercase tracking-widest block ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Pass Rate</span>
         <div className="my-1.5 flex items-center justify-center gap-1">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-          <span className="text-sm font-black text-slate-900 leading-none">{stats.selectionRate}%</span>
+          <span className={`text-sm font-black leading-none ${darkMode ? 'text-white' : 'text-slate-900'}`}>{stats.selectionRate}%</span>
         </div>
-        <span className="text-[8px] text-slate-400 leading-none block">Selected rate</span>
+        <span className={`text-[8px] leading-none block ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Selected rate</span>
       </div>
     </div>
   );

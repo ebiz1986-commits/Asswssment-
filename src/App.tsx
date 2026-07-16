@@ -15,13 +15,26 @@ import LoginPage from "./components/LoginPage";
 import AdminPage from "./components/AdminPage";
 import MobileRestricted from "./components/MobileRestricted";
 import SankenLogo from "./components/SankenLogo";
-import { RotateCcw, Download, Wifi, Battery, Signal, Shield, LogOut, Landmark, UserCheck, ArrowRight, Sparkles, WifiOff, RefreshCw } from "lucide-react";
+import { RotateCcw, Download, Wifi, Battery, Signal, Shield, LogOut, Landmark, UserCheck, ArrowRight, Sparkles, WifiOff, RefreshCw, Sun, Moon } from "lucide-react";
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
+  
+  // Dark mode option
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem("sanken_dark_mode") === "true";
+  });
+
+  const toggleDarkMode = () => {
+    setDarkMode(prev => {
+      const next = !prev;
+      localStorage.setItem("sanken_dark_mode", String(next));
+      return next;
+    });
+  };
   
   // Project profile states
   const [activeProfile, setActiveProfile] = useState<any>(null);
@@ -168,10 +181,16 @@ export default function App() {
             ) : (isAdmin && !viewPortal) ? (
               <Navigate to="/admin" replace />
             ) : (
-              <MainApp isAdmin={isAdmin} activeProfile={activeProfile} onSwitchProfile={() => {
-                setActiveProfile(null);
-                localStorage.removeItem("active_profile");
-              }} />
+              <MainApp 
+                isAdmin={isAdmin} 
+                activeProfile={activeProfile} 
+                darkMode={darkMode}
+                toggleDarkMode={toggleDarkMode}
+                onSwitchProfile={() => {
+                  setActiveProfile(null);
+                  localStorage.removeItem("active_profile");
+                }} 
+              />
             )
           ) : (
             <Navigate to="/login" />
@@ -186,10 +205,14 @@ export default function App() {
 function MainApp({
   isAdmin,
   activeProfile,
+  darkMode,
+  toggleDarkMode,
   onSwitchProfile
 }: {
   isAdmin: boolean;
   activeProfile: any;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
   onSwitchProfile: () => void;
 }) {
   const navigate = useNavigate();
@@ -375,7 +398,11 @@ function MainApp({
   const selectedCandidate = candidates.find((c) => c.id === selectedId) || null;
 
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-br from-sky-400 via-sky-200 to-blue-300 flex items-center justify-center p-0 sm:p-5 md:p-8 no-print select-none relative overflow-hidden">
+    <div className={`min-h-[100dvh] bg-gradient-to-br flex items-center justify-center p-0 sm:p-5 md:p-8 no-print select-none relative overflow-hidden transition-all duration-300 ${
+      darkMode 
+        ? "from-slate-900 via-slate-950 to-slate-900" 
+        : "from-sky-400 via-sky-200 to-blue-300"
+    }`}>
       {/* Decorative background branding shapes */}
       <div className="absolute -left-12 -top-12 opacity-15 pointer-events-none">
         <SankenLogo className="w-64 h-64" />
@@ -384,91 +411,132 @@ function MainApp({
         <SankenLogo className="w-64 h-64" />
       </div>
 
-      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-sky-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden sm:border-[10px] sm:border-sky-900 relative select-none z-10">
+      <div className={`w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] flex flex-col overflow-hidden sm:border-[10px] relative select-none z-10 transition-all duration-300 ${
+        darkMode
+          ? "bg-slate-950 sm:border-slate-800 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)]"
+          : "bg-sky-950 sm:border-sky-900 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)]"
+      }`}>
         
         {/* Notch */}
-        <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-sky-900 rounded-b-2xl z-50">
-          <div className="w-14 h-1 bg-sky-950 rounded-full mx-auto mt-1.5"></div>
+        <div className={`hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 rounded-b-2xl z-50 transition-colors ${
+          darkMode ? "bg-slate-800" : "bg-sky-900"
+        }`}>
+          <div className={`w-14 h-1 rounded-full mx-auto mt-1.5 ${
+            darkMode ? "bg-slate-950" : "bg-sky-950"
+          }`}></div>
         </div>
 
         {/* Status bar */}
-        <div className="bg-[#1e88e5] text-white px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight select-none shrink-0 no-print">
+        <div className={`${darkMode ? 'bg-slate-900 text-slate-300' : 'bg-[#1e88e5] text-white'} px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight select-none shrink-0 no-print transition-colors`}>
           <span className="font-semibold">{currentTime || "9:41 AM"}</span>
           <div className="flex items-center space-x-1.5">
-            <Signal className="w-3.5 h-3.5 text-white" />
+            <Signal className="w-3.5 h-3.5" />
             {isOnline ? (
-              <Wifi className="w-3.5 h-3.5 text-white" />
+              <Wifi className="w-3.5 h-3.5" />
             ) : (
               <WifiOff className="w-3.5 h-3.5 text-rose-300 animate-pulse" />
             )}
-            <Battery className="w-4 h-4 text-white" />
+            <Battery className="w-4 h-4" />
           </div>
         </div>
 
         {/* Unified Top Navigation Header */}
-        <div className="bg-white border-b border-slate-100 px-4 py-2 shrink-0 flex items-center justify-between no-print shadow-4xs">
+        <div className={`border-b px-4 py-2 shrink-0 flex items-center justify-between no-print shadow-4xs transition-colors duration-300 ${
+          darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'
+        }`}>
           <div>
             <div className="flex items-center gap-1.5">
               <SankenLogo className="w-5 h-5" />
-              <h1 className="text-xs font-black text-slate-900 tracking-tight leading-none">Sanken Trades</h1>
+              <h1 className={`text-xs font-black tracking-tight leading-none transition-colors ${
+                darkMode ? 'text-white' : 'text-slate-900'
+              }`}>Sanken Trades</h1>
               {syncStatus === 'offline' || !isOnline ? (
-                <span className="flex items-center gap-0.5 text-[7px] font-black text-amber-700 bg-amber-50 border border-amber-100 px-1 py-0.5 rounded-full shrink-0" title="Device is offline">
+                <span className="flex items-center gap-0.5 text-[7px] font-black text-amber-700 bg-amber-50 border border-amber-100 px-1 py-0.5 rounded-full shrink-0 animate-fade-in" title="Device is offline">
                   <WifiOff className="w-2 h-2 text-amber-500 animate-pulse" />
                   <span>OFFLINE</span>
                 </span>
               ) : syncStatus === 'syncing' ? (
-                <span className="flex items-center gap-0.5 text-[7px] font-black text-blue-700 bg-blue-50 border border-blue-100 px-1 py-0.5 rounded-full shrink-0" title="Syncing with Firestore...">
+                <span className="flex items-center gap-0.5 text-[7px] font-black text-blue-700 bg-blue-50 border border-blue-100 px-1 py-0.5 rounded-full shrink-0 animate-fade-in" title="Syncing with Firestore...">
                   <RefreshCw className="w-2 h-2 text-blue-500 animate-spin" />
                   <span>SYNCING</span>
                 </span>
               ) : syncStatus === 'error' ? (
-                <span className="flex items-center gap-0.5 text-[7px] font-black text-rose-700 bg-rose-50 border border-rose-100 px-1 py-0.5 rounded-full shrink-0" title="Sync error occurred">
+                <span className="flex items-center gap-0.5 text-[7px] font-black text-rose-700 bg-rose-50 border border-rose-100 px-1 py-0.5 rounded-full shrink-0 animate-fade-in" title="Sync error occurred">
                   <WifiOff className="w-2 h-2 text-rose-500" />
                   <span>ERROR</span>
                 </span>
               ) : (
-                <span className="flex items-center gap-0.5 text-[7px] font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-1 py-0.5 rounded-full shrink-0" title="Synced with Firestore">
+                <span className="flex items-center gap-0.5 text-[7px] font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-1 py-0.5 rounded-full shrink-0 animate-fade-in" title="Synced with Firestore">
                   <Wifi className="w-2 h-2 text-emerald-500" />
                   <span>SYNCED</span>
                 </span>
               )}
             </div>
             <div className="flex flex-col gap-0.5 mt-1">
-              <p className="text-[9px] font-black text-slate-700 leading-none flex items-center gap-0.5">
+              <p className={`text-[9px] font-black leading-none flex items-center gap-0.5 transition-colors ${
+                darkMode ? 'text-slate-300' : 'text-slate-700'
+              }`}>
                 <Landmark className="w-2.5 h-2.5 text-slate-500 shrink-0" />
                 <span className="truncate max-w-[120px]">{activeProfile?.projectName || "All Projects"}</span>
               </p>
-              <p className="text-[8px] font-extrabold text-slate-400 leading-none truncate max-w-[120px]">
+              <p className={`text-[8px] font-extrabold leading-none truncate max-w-[120px] transition-colors ${
+                darkMode ? 'text-slate-500' : 'text-slate-400'
+              }`}>
                 {activeProfile?.engineerName || auth.currentUser?.email}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
+            {/* Dark Mode Option Toggle Switch */}
+            <button
+              onClick={toggleDarkMode}
+              className={`p-1 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center border shadow-3xs ${
+                darkMode 
+                  ? 'bg-slate-800 hover:bg-slate-750 text-amber-400 border-slate-700' 
+                  : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
+              }`}
+              title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {darkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            </button>
+
             <button
               onClick={handleReSync}
               disabled={syncStatus === 'syncing'}
-              className="p-1 px-1.5 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-0.5 text-[9px] font-bold border border-slate-100 shadow-3xs disabled:opacity-50"
+              className={`p-1 px-1.5 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-0.5 text-[9px] font-bold border shadow-3xs disabled:opacity-50 ${
+                darkMode
+                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                  : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-100 bg-white'
+              }`}
               title="Manual Re-sync"
             >
-              <RefreshCw className={`w-2.5 h-2.5 text-slate-500 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-2.5 h-2.5 ${syncStatus === 'syncing' ? 'animate-spin' : ''} ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
               <span>Sync</span>
             </button>
             {activeProfile?.id !== "admin" && (
               <button
                 onClick={onSwitchProfile}
-                className="p-1 px-1.5 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-0.5 text-[9px] font-bold border border-slate-100 shadow-3xs"
+                className={`p-1 px-1.5 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-0.5 text-[9px] font-bold border shadow-3xs ${
+                  darkMode
+                    ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                    : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-100 bg-white'
+                }`}
                 title="Switch Project"
               >
-                <RotateCcw className="w-2.5 h-2.5 text-slate-500" />
+                <RotateCcw className={`w-2.5 h-2.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`} />
                 <span>Switch</span>
               </button>
             )}
             {isAdmin && (
               <button
                 onClick={() => navigate("/admin")}
-                className="p-1 px-1.5 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-0.5 text-[9px] font-bold border border-slate-100 shadow-3xs"
+                className={`p-1 px-1.5 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center gap-0.5 text-[9px] font-bold border shadow-3xs ${
+                  darkMode
+                    ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                    : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-100 bg-white'
+                }`}
               >
-                <Shield className="w-2.5 h-2.5 text-slate-600" />
+                <Shield className={`w-2.5 h-2.5 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`} />
                 <span>Admin</span>
               </button>
             )}
@@ -477,7 +545,11 @@ function MainApp({
                 signOut(auth);
                 navigate("/login");
               }}
-              className="p-1 hover:bg-rose-50 text-rose-500 hover:text-rose-600 rounded-lg transition-all active:scale-95 cursor-pointer border border-rose-50/50"
+              className={`p-1 rounded-lg transition-all active:scale-95 cursor-pointer border ${
+                darkMode
+                  ? 'hover:bg-rose-950/40 text-rose-400 border-rose-950/30'
+                  : 'hover:bg-rose-50 text-rose-500 hover:text-rose-600 border-rose-50/50'
+              }`}
               title="Sign Out"
             >
               <LogOut className="w-3 h-3" />
@@ -486,7 +558,9 @@ function MainApp({
         </div>
 
         {/* Content Screens */}
-        <div className="flex-1 bg-slate-50 flex flex-col overflow-hidden relative">
+        <div className={`flex-1 flex flex-col overflow-hidden relative transition-colors duration-300 ${
+          darkMode ? 'bg-slate-950' : 'bg-slate-50'
+        }`}>
           {(!isOnline || syncStatus === 'offline') && (
             <div className="bg-amber-500 text-white px-4 py-1.5 text-center text-[10px] font-extrabold flex items-center justify-center gap-1.5 no-print shrink-0 shadow-sm animate-fade-in">
               <WifiOff className="w-3 h-3 text-white animate-pulse" />
@@ -495,8 +569,12 @@ function MainApp({
           )}
           {/* Project Context Toggle Bar */}
           {activeProfile && activeProfile.id !== "admin" && (
-            <div className="bg-white px-4 py-2 border-b border-slate-100 flex items-center justify-between no-print shrink-0 text-2xs shadow-4xs select-none">
-              <div className="flex items-center gap-1 text-slate-700 font-extrabold text-[10px]">
+            <div className={`px-4 py-2 border-b flex items-center justify-between no-print shrink-0 text-2xs shadow-4xs select-none transition-colors duration-300 ${
+              darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'
+            }`}>
+              <div className={`flex items-center gap-1 font-extrabold text-[10px] transition-colors ${
+                darkMode ? 'text-slate-200' : 'text-slate-700'
+              }`}>
                 <Landmark className="w-3.5 h-3.5 text-slate-500" />
                 <span>Project: {activeProfile.projectName}</span>
               </div>
@@ -504,8 +582,12 @@ function MainApp({
                 onClick={() => setFilterByProject(!filterByProject)}
                 className={`px-2.5 py-1 rounded-lg text-[9px] font-black transition-all cursor-pointer active:scale-95 ${
                   filterByProject
-                    ? "bg-slate-900 text-white shadow-3xs"
-                    : "bg-slate-100 hover:bg-slate-200/80 text-slate-600"
+                    ? darkMode
+                      ? "bg-slate-100 text-slate-950 shadow-3xs"
+                      : "bg-slate-900 text-white shadow-3xs"
+                    : darkMode
+                      ? "bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700"
+                      : "bg-slate-100 hover:bg-slate-200/80 text-slate-600"
                 }`}
               >
                 {filterByProject ? "My Project Only" : "Show All Projects"}
@@ -516,6 +598,7 @@ function MainApp({
           {screen === 'position_select' && (
             <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col justify-between">
               <PositionSelect
+                darkMode={darkMode}
                 onSelectPosition={(roleId) => {
                   setSelectedRole(roleId);
                   setFormSource('select');
@@ -523,20 +606,34 @@ function MainApp({
                   setScreen('candidate_form');
                 }}
               />
-              <div className="p-4 bg-slate-100/50 border-t border-slate-200/60 mt-auto flex flex-col gap-2 no-print shrink-0">
+              <div className={`p-4 border-t mt-auto flex flex-col gap-2 no-print shrink-0 transition-colors ${
+                darkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-slate-100/50 border-slate-200/60'
+              }`}>
                 <div className="flex items-center justify-between text-2xs text-slate-500">
-                  <span className="font-bold text-slate-400 font-mono text-[9px]">EXPORTS:</span>
-                  <button onClick={handleResetToDemo} className="flex items-center space-x-1.5 hover:text-rose-600 transition-colors py-1 px-2 border border-rose-100 rounded-lg bg-white shadow-3xs cursor-pointer active:scale-95 font-bold text-[10px]">
+                  <span className={`font-bold font-mono text-[9px] transition-colors ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>EXPORTS:</span>
+                  <button onClick={handleResetToDemo} className={`flex items-center space-x-1.5 transition-colors py-1 px-2 border rounded-lg shadow-3xs cursor-pointer active:scale-95 font-bold text-[10px] ${
+                    darkMode
+                      ? 'bg-slate-850 hover:bg-slate-800 text-rose-400 border-rose-950/40'
+                      : 'bg-white hover:text-rose-600 border-rose-100 text-rose-500'
+                  }`}>
                     <RotateCcw className="w-3 h-3 text-rose-400" />
                     <span>Reset Demo</span>
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <button onClick={handleExportExcel} className="flex items-center justify-center space-x-1.5 hover:text-emerald-800 transition-colors py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 text-emerald-800 rounded-lg shadow-3xs cursor-pointer active:scale-95 font-black text-[10px]">
+                  <button onClick={handleExportExcel} className={`flex items-center justify-center space-x-1.5 transition-all py-1.5 px-2 rounded-lg shadow-3xs cursor-pointer active:scale-95 font-black text-[10px] ${
+                    darkMode
+                      ? 'bg-emerald-950/40 hover:bg-emerald-900/30 border border-emerald-900 text-emerald-400'
+                      : 'bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 text-emerald-800'
+                  }`}>
                     <Download className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Download Excel</span>
                   </button>
-                  <button onClick={handleExportJSON} className="flex items-center justify-center space-x-1.5 hover:text-slate-800 transition-colors py-1.5 px-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-3xs cursor-pointer active:scale-95 font-black text-[10px] text-slate-600">
+                  <button onClick={handleExportJSON} className={`flex items-center justify-center space-x-1.5 transition-all py-1.5 px-2 rounded-lg shadow-3xs cursor-pointer active:scale-95 font-black text-[10px] ${
+                    darkMode
+                      ? 'bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300'
+                      : 'bg-white hover:bg-slate-50 border border-slate-200 text-slate-600'
+                  }`}>
                     <Download className="w-3.5 h-3.5 text-slate-400" />
                     <span>Export JSON</span>
                   </button>
@@ -547,12 +644,13 @@ function MainApp({
 
           {screen === 'candidate_list' && selectedRole && (
             <div className="flex flex-col h-full overflow-hidden">
-              <DashboardStats candidates={filteredCandidates} positionId={selectedRole} />
+              <DashboardStats candidates={filteredCandidates} positionId={selectedRole} darkMode={darkMode} />
               <div className="flex-1 overflow-hidden">
                 <CandidateList
                   candidates={filteredCandidates}
                   selectedId={selectedId}
                   positionId={selectedRole}
+                  darkMode={darkMode}
                   onSelect={(id) => {
                     setSelectedId(id);
                     setScreen('candidate_detail');
@@ -575,6 +673,7 @@ function MainApp({
             <div className="flex-1 overflow-hidden">
               <CandidateDetail
                 candidate={selectedCandidate}
+                darkMode={darkMode}
                 onEdit={(c) => {
                   setEditingCandidate(c);
                   setScreen('candidate_form');
@@ -592,6 +691,7 @@ function MainApp({
                 positionId={selectedRole}
                 activeProfile={activeProfile}
                 candidates={candidates}
+                darkMode={darkMode}
                 onSave={handleSaveCandidate}
                 onCancel={() => {
                   if (editingCandidate) setScreen('candidate_detail');

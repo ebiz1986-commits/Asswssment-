@@ -11,6 +11,7 @@ interface CandidateListProps {
   onSelect: (id: string) => void;
   onAddNew: () => void;
   onBackToPositions: () => void;
+  darkMode?: boolean;
 }
 
 export default function CandidateList({
@@ -20,6 +21,7 @@ export default function CandidateList({
   onSelect,
   onAddNew,
   onBackToPositions,
+  darkMode = false,
 }: CandidateListProps) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
@@ -65,7 +67,9 @@ export default function CandidateList({
   }, [candidates, positionId, search, statusFilter, sortBy]);
 
   return (
-    <div id="candidate-list-mobile" className="flex flex-col h-full bg-slate-50 animate-fadeIn relative pb-20">
+    <div id="candidate-list-mobile" className={`flex flex-col h-full animate-fadeIn relative pb-20 transition-colors duration-300 ${
+      darkMode ? 'bg-slate-950' : 'bg-slate-50'
+    }`}>
       
       {/* Mobile Top Navigation Header */}
       <div className="bg-gradient-to-r from-[#2ea1e5] to-[#1e88e5] text-white px-4 py-3.5 flex items-center justify-between shadow-md shrink-0">
@@ -103,7 +107,9 @@ export default function CandidateList({
       </div>
 
       {/* Directory Search & Filters bar */}
-      <div className="p-3.5 bg-white border-b border-slate-100 shadow-3xs shrink-0 space-y-3">
+      <div className={`p-3.5 border-b shadow-3xs shrink-0 space-y-3 transition-colors duration-300 ${
+        darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'
+      }`}>
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-2.5 h-4.5 w-4.5 text-slate-400" />
@@ -113,7 +119,11 @@ export default function CandidateList({
             placeholder={`Search ${tradeInfo?.title || "worker"} by name...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9.5 pr-4 py-2 border border-slate-200 rounded-xl text-xs bg-slate-50/50 focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            className={`w-full pl-9.5 pr-4 py-2 border rounded-xl text-xs focus:outline-hidden focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all ${
+              darkMode
+                ? 'bg-slate-950/70 border-slate-800 text-slate-100 focus:bg-slate-900'
+                : 'bg-slate-50/50 border-slate-200 text-slate-800 focus:bg-white'
+            }`}
           />
         </div>
 
@@ -127,7 +137,9 @@ export default function CandidateList({
                 className={`px-3 py-1 text-[10px] font-bold rounded-full border transition-all whitespace-nowrap cursor-pointer ${
                   statusFilter === status
                     ? "bg-[#1e88e5] text-white border-[#1e88e5]"
-                    : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200"
+                    : darkMode
+                      ? "bg-slate-800 hover:bg-slate-755 text-slate-300 border-slate-700"
+                      : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200"
                 }`}
               >
                 {status === "Pending Practical" ? "Pending" : status}
@@ -140,7 +152,11 @@ export default function CandidateList({
             id="btn-toggle-sort"
             onClick={() => setShowSortDropdown(!showSortDropdown)}
             className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-              showSortDropdown ? "bg-[#1e88e5] text-white border-[#1e88e5]" : "bg-slate-50 text-slate-600 border-slate-200"
+              showSortDropdown 
+                ? "bg-[#1e88e5] text-white border-[#1e88e5]" 
+                : darkMode
+                  ? "bg-slate-800 text-slate-300 border-slate-700"
+                  : "bg-slate-50 text-slate-600 border-slate-200"
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -149,7 +165,9 @@ export default function CandidateList({
 
         {/* Dynamic Sort Selector */}
         {showSortDropdown && (
-          <div className="p-2 bg-slate-50 rounded-xl border border-slate-100 animate-slideDown flex items-center justify-between text-xs text-slate-600">
+          <div className={`p-2 rounded-xl border animate-slideDown flex items-center justify-between text-xs transition-colors ${
+            darkMode ? 'bg-slate-850 border-slate-800 text-slate-300' : 'bg-slate-50 border-slate-100 text-slate-600'
+          }`}>
             <span className="font-semibold">Sorting Criteria:</span>
             <select
               value={sortBy}
@@ -157,7 +175,11 @@ export default function CandidateList({
                 setSortBy(e.target.value as any);
                 setShowSortDropdown(false);
               }}
-              className="bg-white border border-slate-200 text-slate-800 font-bold py-1 px-2.5 rounded-lg focus:outline-hidden text-xs cursor-pointer"
+              className={`font-bold py-1 px-2.5 rounded-lg focus:outline-hidden text-xs cursor-pointer border ${
+                darkMode
+                  ? 'bg-slate-900 border-slate-700 text-slate-200'
+                  : 'bg-white border-slate-200 text-slate-800'
+              }`}
             >
               <option value="score-desc">Highest Score</option>
               <option value="score-asc">Lowest Score</option>
@@ -169,10 +191,12 @@ export default function CandidateList({
       </div>
 
       {/* Candidate List Body */}
-      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4.5 custom-scrollbar">
         {filteredCandidates.length === 0 ? (
-          <div className="text-center py-16 px-4 bg-white rounded-2xl border border-slate-100/60 shadow-3xs">
-            <p className="text-sm font-semibold text-slate-400">No candidates found</p>
+          <div className={`text-center py-16 px-4 rounded-2xl border shadow-3xs transition-colors duration-300 ${
+            darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100/60'
+          }`}>
+            <p className={`text-sm font-semibold ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>No candidates found</p>
             <p className="text-xs text-slate-400 mt-1 max-w-[200px] mx-auto">
               Tap the &ldquo;+&rdquo; button below to add your first assessment.
             </p>
@@ -186,25 +210,42 @@ export default function CandidateList({
                 key={c.id}
                 id={`candidate-row-${c.id}`}
                 onClick={() => onSelect(c.id)}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer relative active:scale-99 ${
+                className={`p-4 pl-6 rounded-2xl border cursor-pointer relative overflow-hidden transition-all duration-200 active:scale-99 ${
                   isSelected
-                    ? "bg-blue-50/60 border-blue-200 shadow-xs ring-1 ring-blue-100"
-                    : "bg-white hover:bg-slate-50 border-slate-100/80 shadow-3xs"
+                    ? darkMode
+                      ? "bg-blue-950/40 border-blue-500 shadow-lg ring-1 ring-blue-500/30"
+                      : "bg-blue-50/70 border-blue-200 shadow-md ring-1 ring-blue-100"
+                    : darkMode
+                      ? "bg-slate-900 hover:bg-slate-800 border-slate-800 shadow-md hover:shadow-lg"
+                      : "bg-white hover:bg-slate-50/50 border-slate-200/60 shadow-sm hover:shadow-md"
                 }`}
               >
+                {/* Visual left colored status accent bar for "cards need to be see separtly" */}
+                <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors ${
+                  overallScore > 59 ? 'bg-emerald-500' : 'bg-rose-500'
+                }`} />
+
                 <div className="flex items-start space-x-3">
                   {c.photoUrl ? (
-                    <img referrerPolicy="no-referrer" src={c.photoUrl} alt={c.name} className="w-12 h-12 rounded-xl object-cover border border-slate-150 shadow-3xs shrink-0" />
+                    <img referrerPolicy="no-referrer" src={c.photoUrl} alt={c.name} className={`w-12 h-12 rounded-xl object-cover border shadow-3xs shrink-0 ${
+                      darkMode ? 'border-slate-750' : 'border-slate-150'
+                    }`} />
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 shrink-0">
-                      <User className="w-5 h-5 text-slate-400 stroke-[1.8]" />
+                    <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 transition-colors ${
+                      darkMode ? 'bg-slate-950 border-slate-800 text-slate-600' : 'bg-slate-50 border-slate-100 text-slate-300'
+                    }`}>
+                      <User className="w-5 h-5 stroke-[1.8]" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-2">
                       <div className="min-w-0">
-                        <h3 className="font-extrabold text-slate-900 text-sm tracking-tight font-sans line-clamp-1">{c.name}</h3>
-                        <p className="text-4xs text-slate-400 font-mono tracking-widest mt-0.5">{c.referenceId}</p>
+                        <h3 className={`font-extrabold text-sm tracking-tight font-sans line-clamp-1 transition-colors ${
+                          darkMode ? 'text-slate-100' : 'text-slate-900'
+                        }`}>{c.name}</h3>
+                        <p className={`text-4xs font-mono tracking-widest mt-0.5 transition-colors ${
+                          darkMode ? 'text-slate-500' : 'text-slate-400'
+                        }`}>{c.referenceId}</p>
                       </div>
                       <span
                         className={`px-2 py-0.5 text-4xs font-bold rounded-full border tracking-wide uppercase shrink-0 ${getStatusColor(
@@ -217,13 +258,15 @@ export default function CandidateList({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-100/60 text-2xs">
-                  <div className="flex items-center space-x-1.5 text-slate-600">
-                    <Award className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <div className={`grid grid-cols-2 gap-2 mt-3 pt-3 border-t text-2xs transition-colors ${
+                  darkMode ? 'border-slate-800' : 'border-slate-100/60'
+                }`}>
+                  <div className="flex items-center space-x-1.5">
+                    <Award className={`w-3.5 h-3.5 shrink-0 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`} />
                     <div>
-                      <p className="text-[9px] text-slate-400 leading-none">Competency</p>
+                      <p className={`text-[9px] leading-none transition-colors ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Competency</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="font-extrabold text-slate-800">{overallScore}%</span>
+                        <span className={`font-extrabold transition-colors ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>{overallScore}%</span>
                         <span className={`px-1 py-0.2 text-[7px] font-black tracking-wider rounded uppercase border ${overallScore > 59 ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"}`}>
                           {overallScore > 59 ? "Pass" : "Fail"}
                         </span>
@@ -231,22 +274,24 @@ export default function CandidateList({
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-1.5 text-slate-600">
-                    <Scale className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <div className="flex items-center space-x-1.5">
+                    <Scale className={`w-3.5 h-3.5 shrink-0 ${darkMode ? 'text-slate-500' : 'text-slate-400'}`} />
                     <div>
-                      <p className="text-[9px] text-slate-400 leading-none">Practical Test</p>
-                      <p className="font-extrabold text-slate-800 mt-0.5">
+                      <p className={`text-[9px] leading-none transition-colors ${darkMode ? 'text-slate-500' : 'text-slate-400'}`}>Practical Test</p>
+                      <p className={`font-extrabold mt-0.5 transition-colors ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
                         {c.practicalTestRequired ? "Required" : "Not Required"}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50 text-[10px] text-slate-400 font-medium">
+                <div className={`flex items-center justify-between mt-2 pt-2 border-t text-[10px] font-medium transition-colors ${
+                  darkMode ? 'border-slate-800/60 text-slate-500' : 'border-slate-50 text-slate-400'
+                }`}>
                   <span className="truncate">Assessor: {c.assessor || "N/A"}</span>
                   <span className="flex items-center gap-1 font-mono text-[9px] shrink-0">
-                    <Phone className="w-2.5 h-2.5 text-slate-300" />
-                    {c.contact ? c.contact : "No Contact"}
+                    <Phone className={`w-2.5 h-2.5 ${darkMode ? 'text-slate-600' : 'text-slate-300'}`} />
+                    <span className={darkMode ? 'text-slate-300' : 'text-slate-600'}>{c.contact ? c.contact : "No Contact"}</span>
                   </span>
                 </div>
               </div>

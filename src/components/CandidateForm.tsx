@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from "react";
 import { Candidate, POSITIONS, getPositionRubrics } from "../types";
 import { migrateCandidateToHundredScale, calculateOverallScore } from "../utils";
-import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer, Camera, Upload, Trash2, User, Image, Loader2, ChevronDown, ChevronUp, AlertCircle, CheckCircle, HelpCircle } from "lucide-react";
+import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer, Camera, Upload, Trash2, User, Image, Loader2, ChevronDown, ChevronUp, AlertCircle, CheckCircle, HelpCircle, RefreshCw } from "lucide-react";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
@@ -12,6 +12,7 @@ interface CandidateFormProps {
   positionId: 'bar_bender' | 'finishing_carpenter' | 'labour' | 'mason' | 'rigger' | 'shoutering_carpenter' | 'spray_painter' | 'survey_helper' | 'tile_mason' | 'wall_painter';
   activeProfile?: any;
   candidates?: Candidate[];
+  darkMode?: boolean;
   onSave: (candidate: Candidate) => void;
   onCancel: () => void;
 }
@@ -21,6 +22,7 @@ export default function CandidateForm({
   positionId,
   activeProfile,
   candidates = [],
+  darkMode = false,
   onSave,
   onCancel,
 }: CandidateFormProps) {
@@ -41,6 +43,7 @@ export default function CandidateForm({
   const [contact, setContact] = useState(initialCandidate?.contact || "");
 
   // Camera & Upload states
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -69,12 +72,15 @@ export default function CandidateForm({
     return unsubscribe;
   }, []);
 
-  const startCamera = async () => {
+  const startCamera = async (currentMode: "user" | "environment" = facingMode) => {
     setCameraError(null);
     setUploadSuccess(null);
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: { facingMode: { ideal: currentMode } },
         audio: false
       });
       setStream(mediaStream);
@@ -97,6 +103,12 @@ export default function CandidateForm({
       setStream(null);
     }
     setCameraActive(false);
+  };
+
+  const toggleCameraFacing = () => {
+    const nextMode = facingMode === "environment" ? "user" : "environment";
+    setFacingMode(nextMode);
+    startCamera(nextMode);
   };
 
   const compressImage = (dataUrl: string, maxWidth = 180, maxHeight = 180): Promise<string> => {
@@ -195,41 +207,41 @@ export default function CandidateForm({
   // Section 1: Experience & Quals (Marks out of 100)
 
   const [s1_siteExperience, setS1SiteExperience] = useState<number | "">(
-    initialCandidate ? (initialCandidate.s1_siteExperience ?? "") : ""
+    initialCandidate && initialCandidate.s1_siteExperience ? initialCandidate.s1_siteExperience : ""
   );
   const [s1_nvqQualification, setS1NvqQualification] = useState<number | "">(
-    initialCandidate ? (initialCandidate.s1_nvqQualification ?? "") : ""
+    initialCandidate && initialCandidate.s1_nvqQualification ? initialCandidate.s1_nvqQualification : ""
   );
   const [s1_recommendation, setS1Recommendation] = useState<number | "">(
-    initialCandidate ? (initialCandidate.s1_recommendation ?? "") : ""
+    initialCandidate && initialCandidate.s1_recommendation ? initialCandidate.s1_recommendation : ""
   );
 
   // Section 2: Knowledge & Practice (Marks out of 100)
   const [s2_measurementReading, setS2MeasurementReading] = useState<number | "">(
-    initialCandidate ? (initialCandidate.s2_measurementReading ?? "") : ""
+    initialCandidate && initialCandidate.s2_measurementReading ? initialCandidate.s2_measurementReading : ""
   );
   const [s2_machineKnowledge, setS2MachineKnowledge] = useState<number | "">(
-    initialCandidate ? (initialCandidate.s2_machineKnowledge ?? "") : ""
+    initialCandidate && initialCandidate.s2_machineKnowledge ? initialCandidate.s2_machineKnowledge : ""
   );
   const [s2_methodology, setS2Methodology] = useState<number | "">(
-    initialCandidate ? (initialCandidate.s2_methodology ?? "") : ""
+    initialCandidate && initialCandidate.s2_methodology ? initialCandidate.s2_methodology : ""
   );
   const [s2_hseEquipment, setS2HseEquipment] = useState<number | "">(
-    initialCandidate ? (initialCandidate.s2_hseEquipment ?? "") : ""
+    initialCandidate && initialCandidate.s2_hseEquipment ? initialCandidate.s2_hseEquipment : ""
   );
 
   // Section 3: Appearance & Attitude (Marks out of 100)
   const [s3_physicalAppearance, setS3PhysicalAppearance] = useState<number | "">(
-    initialCandidate ? (initialCandidate.s3_physicalAppearance ?? "") : ""
+    initialCandidate && initialCandidate.s3_physicalAppearance ? initialCandidate.s3_physicalAppearance : ""
   );
   const [s3_healthCondition, setS3HealthCondition] = useState<number | "">(
-    initialCandidate ? (initialCandidate.s3_healthCondition ?? "") : ""
+    initialCandidate && initialCandidate.s3_healthCondition ? initialCandidate.s3_healthCondition : ""
   );
   const [s3_characterAttitude, setS3CharacterAttitude] = useState<number | "">(
-    initialCandidate ? (initialCandidate.s3_characterAttitude ?? "") : ""
+    initialCandidate && initialCandidate.s3_characterAttitude ? initialCandidate.s3_characterAttitude : ""
   );
   const [s3_extendedHours, setS3ExtendedHours] = useState<number | "">(
-    initialCandidate ? (initialCandidate.s3_extendedHours ?? "") : ""
+    initialCandidate && initialCandidate.s3_extendedHours ? initialCandidate.s3_extendedHours : ""
   );
 
   // Section 4: Practical Test & Remarks
@@ -380,23 +392,33 @@ export default function CandidateForm({
   };
 
   return (
-    <div id="candidate-form-v2" className="flex flex-col h-full bg-[#f8fafc] animate-fadeIn overflow-hidden">
+    <div id="candidate-form-v2" className={`flex flex-col h-full animate-fadeIn overflow-hidden transition-colors duration-300 ${
+      darkMode ? "bg-slate-950" : "bg-[#f8fafc]"
+    }`}>
       
       {/* 1. Header: Back Arrow, Position title Assessment, Subtitle */}
-      <div className="bg-white px-6 pt-6 pb-4 flex items-start gap-4 shrink-0 border-b border-slate-100/80">
+      <div className={`px-6 pt-6 pb-4 flex items-start gap-4 shrink-0 border-b transition-colors duration-300 ${
+        darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100/80"
+      }`}>
         <button
           type="button"
           onClick={onCancel}
-          className="p-1.5 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer text-slate-800 shrink-0 mt-0.5"
+          className={`p-1.5 rounded-xl transition-colors cursor-pointer shrink-0 mt-0.5 ${
+            darkMode ? "hover:bg-slate-800 text-slate-200" : "hover:bg-slate-50 text-slate-800"
+          }`}
           title="Go back"
         >
           <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
         </button>
         <div>
-          <h1 className="text-xl font-black text-slate-950 tracking-tight font-sans">
+          <h1 className={`text-xl font-black tracking-tight font-sans transition-colors duration-300 ${
+            darkMode ? "text-white" : "text-slate-950"
+          }`}>
             {currentTrade?.title} Assessment
           </h1>
-          <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
+          <p className={`text-xs mt-1 font-medium leading-relaxed transition-colors duration-300 ${
+            darkMode ? "text-slate-400" : "text-slate-500"
+          }`}>
             Evaluate candidate competency across all criteria
           </p>
         </div>
@@ -428,27 +450,39 @@ export default function CandidateForm({
         </div>
 
         {/* 3. Candidate Information Card */}
-        <div className="bg-white rounded-[20px] border border-slate-100 p-6 space-y-4 shadow-3xs">
-          <h2 className="text-base font-extrabold text-slate-900 tracking-tight border-b border-slate-50 pb-2.5">
+        <div className={`rounded-[20px] p-6 space-y-4 shadow-3xs border transition-all duration-300 ${
+          darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-100"
+        }`}>
+          <h2 className={`text-base font-extrabold tracking-tight border-b pb-2.5 transition-colors duration-300 ${
+            darkMode ? "text-white border-slate-800" : "text-slate-900 border-slate-50"
+          }`}>
             Candidate Information
           </h2>
 
           {/* Photo Attachment Widget */}
-          <div className="pb-3 border-b border-slate-50">
-            <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-2">
+          <div className={`pb-3 border-b transition-colors duration-300 ${
+            darkMode ? "border-slate-800" : "border-slate-50"
+          }`}>
+            <label className={`block text-xs font-extrabold tracking-tight mb-2 transition-colors duration-300 ${
+              darkMode ? "text-slate-200" : "text-slate-800"
+            }`}>
               Candidate Photo Attachment
             </label>
             
             {uploading ? (
-              <div className="w-full max-w-sm mx-auto p-6 border-2 border-dashed border-indigo-200 rounded-2xl bg-indigo-50/20 flex flex-col items-center justify-center text-center space-y-3 min-h-[144px]">
-                <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+              <div className={`w-full max-w-sm mx-auto p-6 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center space-y-3 min-h-[144px] transition-colors duration-300 ${
+                darkMode ? "border-indigo-900 bg-indigo-950/10" : "border-indigo-200 bg-indigo-50/20"
+              }`}>
+                <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
                 <div>
-                  <p className="text-xs font-bold text-slate-700">Uploading Profile Picture...</p>
+                  <p className={`text-xs font-bold transition-colors ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Uploading Profile Picture...</p>
                   <p className="text-[10px] text-slate-400 mt-0.5">Please wait while the image is securely processed</p>
                 </div>
               </div>
             ) : photoUrl ? (
-              <div className="relative w-36 h-36 mx-auto rounded-2xl overflow-hidden border-2 border-indigo-100 shadow-3xs bg-slate-100 group">
+              <div className={`relative w-36 h-36 mx-auto rounded-2xl overflow-hidden border-2 shadow-3xs transition-colors duration-300 group ${
+                darkMode ? "border-indigo-950 bg-slate-800" : "border-indigo-100 bg-slate-100"
+              }`}>
                 <img referrerPolicy="no-referrer" src={photoUrl} alt="Candidate Preview" className="w-full h-full object-cover" />
                 <button
                   type="button"
@@ -476,6 +510,15 @@ export default function CandidateForm({
                   </button>
                   <button
                     type="button"
+                    onClick={toggleCameraFacing}
+                    className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer flex items-center space-x-1"
+                    title="Switch between front and back camera"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Switch</span>
+                  </button>
+                  <button
+                    type="button"
                     onClick={stopCamera}
                     className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer"
                   >
@@ -484,27 +527,41 @@ export default function CandidateForm({
                 </div>
               </div>
             ) : (
-              <div className="w-full max-w-sm mx-auto p-4.5 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50 flex flex-col items-center justify-center text-center space-y-3">
-                <div className="p-3 bg-slate-100 rounded-2xl text-slate-400">
+              <div className={`w-full max-w-sm mx-auto p-4.5 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center space-y-3 transition-all duration-300 ${
+                darkMode ? "border-slate-800 bg-slate-900/40" : "border-slate-200 bg-slate-50/50"
+              }`}>
+                <div className={`p-3 rounded-2xl transition-all duration-300 ${
+                  darkMode ? "bg-slate-800 text-slate-500" : "bg-slate-100 text-slate-400"
+                }`}>
                   <User className="w-6 h-6 stroke-[1.8]" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-700">No Photo Attached</p>
+                  <p className={`text-xs font-bold transition-colors ${darkMode ? "text-slate-300" : "text-slate-700"}`}>No Photo Attached</p>
                   <p className="text-[10px] text-slate-400 mt-0.5">Take a live photo or upload from device</p>
                 </div>
                 {cameraError && (
-                  <p className="text-[10px] text-rose-500 bg-rose-50 border border-rose-100 p-2 rounded-lg max-w-xs">{cameraError}</p>
+                  <p className={`text-[10px] p-2 rounded-lg max-w-xs transition-colors ${
+                    darkMode ? "text-rose-400 bg-rose-950/20 border border-rose-900" : "text-rose-500 bg-rose-50 border border-rose-100"
+                  }`}>{cameraError}</p>
                 )}
                 <div className="flex items-center space-x-2">
                   <button
                     type="button"
                     onClick={startCamera}
-                    className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 border border-indigo-150"
+                    className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 border ${
+                      darkMode 
+                        ? "bg-indigo-950/40 hover:bg-indigo-900/50 text-indigo-400 border-indigo-900/60" 
+                        : "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-150"
+                    }`}
                   >
                     <Camera className="w-3.5 h-3.5" />
                     <span>Take Photo</span>
                   </button>
-                  <label className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-extrabold border border-slate-200 transition-all cursor-pointer flex items-center space-x-1 shadow-3xs">
+                  <label className={`px-3 py-1.5 rounded-lg text-xs font-extrabold border transition-all cursor-pointer flex items-center space-x-1 shadow-3xs ${
+                    darkMode
+                      ? "bg-slate-850 hover:bg-slate-800 text-slate-200 border-slate-700"
+                      : "bg-white hover:bg-slate-50 text-slate-700 border-slate-200"
+                  }`}>
                     <Upload className="w-3.5 h-3.5 text-slate-400" />
                     <span>Upload Image</span>
                     <input
@@ -519,7 +576,9 @@ export default function CandidateForm({
             )}
             
             {uploadSuccess && (
-              <p className="text-[10px] text-emerald-600 font-extrabold text-center mt-2.5 bg-emerald-50 border border-emerald-100 py-1.5 px-3 rounded-lg max-w-sm mx-auto animate-fadeIn">
+              <p className={`text-[10px] font-extrabold text-center mt-2.5 border py-1.5 px-3 rounded-lg max-w-sm mx-auto animate-fadeIn transition-colors duration-300 ${
+                darkMode ? "text-emerald-400 bg-emerald-950/25 border-emerald-900/50" : "text-emerald-600 bg-emerald-50 border-emerald-100"
+              }`}>
                 {uploadSuccess}
               </p>
             )}
@@ -529,7 +588,9 @@ export default function CandidateForm({
           <div className="space-y-4">
             {/* Candidate Name */}
             <div>
-              <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+              <label className={`block text-xs font-extrabold tracking-tight mb-1.5 transition-colors duration-300 ${
+                darkMode ? "text-slate-200" : "text-slate-800"
+              }`}>
                 Candidate Name *
               </label>
               <input
@@ -538,7 +599,11 @@ export default function CandidateForm({
                 placeholder="Enter candidate name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-all font-semibold"
+                className={`w-full px-4 py-3 border rounded-xl text-sm transition-all font-semibold focus:outline-none focus:ring-1 ${
+                  darkMode
+                    ? "border-slate-800 bg-slate-950 text-slate-100 placeholder-slate-600 focus:ring-slate-700 focus:border-slate-700"
+                    : "border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:ring-slate-400 focus:border-slate-400"
+                }`}
               />
             </div>
 
@@ -546,8 +611,10 @@ export default function CandidateForm({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* NIC Number */}
               <div>
-                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
-                  NIC Number * <span className="text-[10px] text-indigo-600 font-bold">(Mandatory)</span>
+                <label className={`block text-xs font-extrabold tracking-tight mb-1.5 transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
+                  NIC Number * <span className="text-[10px] text-indigo-400 font-bold">(Mandatory)</span>
                 </label>
                 <input
                   type="text"
@@ -555,7 +622,11 @@ export default function CandidateForm({
                   placeholder="e.g. 199501234567 or 950123456V"
                   value={nicNumber}
                   onChange={(e) => setNicNumber(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-all font-semibold"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm transition-all font-semibold focus:outline-none focus:ring-1 ${
+                    darkMode
+                      ? "border-slate-800 bg-slate-950 text-slate-100 placeholder-slate-600 focus:ring-slate-700 focus:border-slate-700"
+                      : "border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:ring-slate-400 focus:border-slate-400"
+                  }`}
                 />
                 
                 {nicNumber.trim().length >= 4 && (() => {
@@ -571,20 +642,20 @@ export default function CandidateForm({
                       <div className="mt-2 text-[11px] font-bold leading-normal transition-all animate-fadeIn">
                         <div className={`p-2.5 rounded-lg border flex items-start gap-2 ${
                           passed 
-                            ? "bg-emerald-50 text-emerald-800 border-emerald-200/80" 
-                            : "bg-rose-50 text-rose-800 border-rose-200/80"
+                            ? (darkMode ? "bg-emerald-950/20 text-emerald-300 border-emerald-900/60" : "bg-emerald-50 text-emerald-800 border-emerald-200/80")
+                            : (darkMode ? "bg-rose-950/20 text-rose-300 border-rose-900/60" : "bg-rose-50 text-rose-800 border-rose-200/80")
                         }`}>
                           {passed ? (
-                            <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
                           ) : (
-                            <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
                           )}
                           <div>
                             <p className="font-extrabold uppercase tracking-wide text-[9px] mb-0.5">
                               Previous Result: {passed ? "Pass" : "Fail"}
                             </p>
-                            <p className="text-slate-600 font-medium">
-                              Candidate <span className="font-bold text-slate-800">{match.name}</span> previously scored <span className="font-extrabold text-slate-800">{score}%</span> on {match.date} for {POSITIONS.find(p => p.id === match.positionId)?.title || match.positionId}.
+                            <p className={`${darkMode ? "text-slate-300" : "text-slate-600"} font-medium`}>
+                              Candidate <span className={`font-bold ${darkMode ? "text-white" : "text-slate-800"}`}>{match.name}</span> previously scored <span className={`font-extrabold ${darkMode ? "text-white" : "text-slate-800"}`}>{score}%</span> on {match.date} for {POSITIONS.find(p => p.id === match.positionId)?.title || match.positionId}.
                             </p>
                           </div>
                         </div>
@@ -594,11 +665,13 @@ export default function CandidateForm({
 
                   return (
                     <div className="mt-2 text-[11px] font-bold leading-normal transition-all animate-fadeIn">
-                      <div className="p-2.5 rounded-lg border bg-blue-50/50 text-blue-800 border-blue-100/60 flex items-center gap-2">
-                        <HelpCircle className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                      <div className={`p-2.5 rounded-lg border flex items-center gap-2 ${
+                        darkMode ? "bg-blue-950/20 text-blue-300 border-blue-900/60" : "bg-blue-50/50 text-blue-800 border-blue-100/60"
+                      }`}>
+                        <HelpCircle className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                         <div>
                           <p className="font-extrabold uppercase tracking-wide text-[9px] mb-0.5">Interview Status</p>
-                          <p className="text-blue-700/90 font-extrabold">First Time Interview</p>
+                          <p className={`${darkMode ? "text-blue-300" : "text-blue-700/90"} font-extrabold`}>First Time Interview</p>
                         </div>
                       </div>
                     </div>
@@ -608,7 +681,9 @@ export default function CandidateForm({
 
               {/* Passport Number */}
               <div>
-                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                <label className={`block text-xs font-extrabold tracking-tight mb-1.5 transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   Passport Number <span className="text-[10px] text-slate-400 font-bold">(Optional)</span>
                 </label>
                 <input
@@ -616,7 +691,11 @@ export default function CandidateForm({
                   placeholder="e.g. N1234567"
                   value={passportNumber}
                   onChange={(e) => setPassportNumber(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-all font-semibold"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm transition-all font-semibold focus:outline-none focus:ring-1 ${
+                    darkMode
+                      ? "border-slate-800 bg-slate-950 text-slate-100 placeholder-slate-600 focus:ring-slate-700 focus:border-slate-700"
+                      : "border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:ring-slate-400 focus:border-slate-400"
+                  }`}
                 />
               </div>
             </div>
@@ -624,33 +703,47 @@ export default function CandidateForm({
             {/* Reference ID and Position info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                <label className={`block text-xs font-extrabold tracking-tight mb-1.5 transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   Assessment Ref ID
                 </label>
                 <input
                   type="text"
                   readOnly
                   value={referenceId}
-                  className="w-full px-4 py-3 border border-slate-100 rounded-xl text-sm bg-slate-50 text-slate-500 font-bold focus:outline-none select-none"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm font-bold focus:outline-none select-none ${
+                    darkMode
+                      ? "border-slate-800 bg-slate-900/40 text-slate-400"
+                      : "border-slate-100 bg-slate-50 text-slate-500"
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                <label className={`block text-xs font-extrabold tracking-tight mb-1.5 transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   Position
                 </label>
                 <input
                   type="text"
                   readOnly
                   value={currentTrade?.title || ""}
-                  className="w-full px-4 py-3 border border-slate-100 rounded-xl text-sm bg-slate-50 text-slate-500 font-bold focus:outline-none select-none"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm font-bold focus:outline-none select-none ${
+                    darkMode
+                      ? "border-slate-800 bg-slate-900/40 text-slate-400"
+                      : "border-slate-100 bg-slate-50 text-slate-500"
+                  }`}
                 />
               </div>
             </div>
 
             {/* Assessment Date */}
             <div>
-              <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+              <label className={`block text-xs font-extrabold tracking-tight mb-1.5 transition-colors duration-300 ${
+                darkMode ? "text-slate-200" : "text-slate-800"
+              }`}>
                 Assessment Date
               </label>
               <div className="relative flex items-center">
@@ -658,7 +751,11 @@ export default function CandidateForm({
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 transition-all font-semibold appearance-none"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm transition-all font-semibold focus:outline-none focus:ring-1 appearance-none ${
+                    darkMode
+                      ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                      : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                  }`}
                 />
                 <Calendar className="w-4 h-4 text-slate-500 absolute right-4 pointer-events-none" />
               </div>
@@ -667,20 +764,28 @@ export default function CandidateForm({
             {/* Project Name, Assessor and Requirement Company */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                <label className={`block text-xs font-extrabold tracking-tight mb-1.5 transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   Project Name
                 </label>
                 <input
                   type="text"
                   readOnly
                   value={projectName}
-                  className="w-full px-4 py-3 border border-slate-100 rounded-xl text-sm bg-slate-50 text-slate-500 font-bold focus:outline-none select-none"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm font-bold focus:outline-none select-none ${
+                    darkMode
+                      ? "border-slate-800 bg-slate-900/40 text-slate-400"
+                      : "border-slate-100 bg-slate-50 text-slate-500"
+                  }`}
                   title="Your active project is pre-selected and locked"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                <label className={`block text-xs font-extrabold tracking-tight mb-1.5 transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   Assessor Name
                 </label>
                 <input
@@ -688,22 +793,32 @@ export default function CandidateForm({
                   placeholder="Enter assessor name"
                   value={assessor}
                   onChange={(e) => setAssessor(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 transition-all font-semibold"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm transition-all font-semibold focus:outline-none focus:ring-1 ${
+                    darkMode
+                      ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700 focus:border-slate-700"
+                      : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400 focus:border-slate-400"
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
+                <label className={`block text-xs font-extrabold tracking-tight mb-1.5 transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   Requirement Company Name
                 </label>
                 <select
                   value={requirementCompany}
                   onChange={(e) => setRequirementCompany(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 transition-all font-semibold"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm transition-all font-semibold focus:outline-none focus:ring-1 ${
+                    darkMode
+                      ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700 focus:border-slate-700"
+                      : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400 focus:border-slate-400"
+                  }`}
                 >
                   <option value="">-- Select Company --</option>
                   {companies.map((comp) => (
-                    <option key={comp.id} value={comp.name}>
+                    <option key={comp.id} value={comp.name} className={darkMode ? "bg-slate-900 text-slate-100" : "bg-white text-slate-800"}>
                       {comp.name}
                     </option>
                   ))}
@@ -714,17 +829,23 @@ export default function CandidateForm({
         </div>
 
         {/* 4. Section 1: Experience & Qualification */}
-        <div className="bg-white rounded-[20px] border-l-[6px] border-l-blue-600 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
+        <div className={`rounded-[20px] border-l-[6px] border-l-blue-600 border-y border-r overflow-hidden shadow-3xs transition-all duration-300 ${
+          darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200/80"
+        }`}>
           <button
             type="button"
             onClick={() => setS1Expanded(!s1Expanded)}
-            className="w-full text-left bg-blue-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100 transition-colors hover:bg-blue-50/75 focus:outline-none cursor-pointer"
+            className={`w-full text-left px-5 py-4 flex justify-between items-center border-b transition-colors duration-300 focus:outline-none cursor-pointer ${
+              darkMode ? "bg-blue-950/20 border-slate-850 hover:bg-blue-950/30 text-white" : "bg-blue-50/40 border-slate-100 hover:bg-blue-50/75 text-slate-900"
+            }`}
           >
             <div className="flex items-center space-x-2.5">
-              <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg shrink-0">
+              <div className={`p-1.5 rounded-lg shrink-0 ${darkMode ? "bg-blue-900/40 text-blue-400" : "bg-blue-100 text-blue-700"}`}>
                 <Award className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans flex items-center gap-1.5">
+              <h3 className={`text-sm font-black tracking-tight font-sans flex items-center gap-1.5 transition-colors duration-300 ${
+                darkMode ? "text-white" : "text-slate-900"
+              }`}>
                 <span>Section 1: Experience & Quals</span>
                 {s1Expanded ? (
                   <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
@@ -735,7 +856,9 @@ export default function CandidateForm({
             </div>
             <div className="flex items-center space-x-3">
               <div className="flex flex-col items-end">
-                <span className="text-blue-800 text-xs font-black font-mono bg-blue-100/60 px-2.5 py-1 rounded-lg">
+                <span className={`text-xs font-black font-mono px-2.5 py-1 rounded-lg transition-colors ${
+                  darkMode ? "text-blue-300 bg-blue-950/40" : "text-blue-800 bg-blue-100/60"
+                }`}>
                   {s1Subtotal} / 50
                 </span>
                 <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">50% Weight</span>
@@ -747,14 +870,20 @@ export default function CandidateForm({
             <div className="p-5 space-y-4">
               {/* Site Experience */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                <label className={`block text-xs font-bold leading-normal transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   {rubrics.s1.s1_siteExperience.label}
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-slate-800 text-slate-400" : "bg-[#f1f5f9] text-slate-600"
+                  }`}>
                     Weight: 50
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-emerald-950/30 text-emerald-400" : "bg-emerald-50 text-emerald-700"
+                  }`}>
                     Result: ({num(s1_siteExperience)}/100) * 50 = {Math.round(s1_siteExp_w * 10) / 10}
                   </span>
                 </div>
@@ -766,22 +895,32 @@ export default function CandidateForm({
                     step="1"
                     value={s1_siteExperience}
                     onChange={(e) => handleNumberChange(setS1SiteExperience, e.target.value, 100)}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                    className={`flex-1 px-4 py-3 border rounded-xl text-sm text-center font-bold transition-all focus:outline-none focus:ring-1 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                        : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                    }`}
                   />
                   <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
                 </div>
               </div>
 
               {/* NVQ Qualification */}
-              <div className="space-y-1.5 pt-4 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-800 leading-normal">
+              <div className={`space-y-1.5 pt-4 border-t transition-colors duration-300 ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                <label className={`block text-xs font-bold leading-normal transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   {rubrics.s1.s1_nvqQualification.label}
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-slate-800 text-slate-400" : "bg-[#f1f5f9] text-slate-600"
+                  }`}>
                     Weight: 30
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-emerald-950/30 text-emerald-400" : "bg-emerald-50 text-emerald-700"
+                  }`}>
                     Result: ({num(s1_nvqQualification)}/100) * 30 = {Math.round(s1_nvq_w * 10) / 10}
                   </span>
                 </div>
@@ -793,22 +932,32 @@ export default function CandidateForm({
                     step="1"
                     value={s1_nvqQualification}
                     onChange={(e) => handleNumberChange(setS1NvqQualification, e.target.value, 100)}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                    className={`flex-1 px-4 py-3 border rounded-xl text-sm text-center font-bold transition-all focus:outline-none focus:ring-1 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                        : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                    }`}
                   />
                   <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
                 </div>
               </div>
 
               {/* 3rd Party Recommendation */}
-              <div className="space-y-1.5 pt-4 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-800 leading-normal">
+              <div className={`space-y-1.5 pt-4 border-t transition-colors duration-300 ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                <label className={`block text-xs font-bold leading-normal transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   {rubrics.s1.s1_recommendation.label}
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-slate-800 text-slate-400" : "bg-[#f1f5f9] text-slate-600"
+                  }`}>
                     Weight: 20
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-emerald-950/30 text-emerald-400" : "bg-emerald-50 text-emerald-700"
+                  }`}>
                     Result: ({num(s1_recommendation)}/100) * 20 = {Math.round(s1_rec_w * 10) / 10}
                   </span>
                 </div>
@@ -820,7 +969,11 @@ export default function CandidateForm({
                     step="1"
                     value={s1_recommendation}
                     onChange={(e) => handleNumberChange(setS1Recommendation, e.target.value, 100)}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                    className={`flex-1 px-4 py-3 border rounded-xl text-sm text-center font-bold transition-all focus:outline-none focus:ring-1 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                        : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                    }`}
                   />
                   <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
                 </div>
@@ -830,17 +983,23 @@ export default function CandidateForm({
         </div>
 
         {/* 5. Section 2: Knowledge & Practice */}
-        <div className="bg-white rounded-[20px] border-l-[6px] border-l-indigo-600 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
+        <div className={`rounded-[20px] border-l-[6px] border-l-indigo-600 border-y border-r overflow-hidden shadow-3xs transition-all duration-300 ${
+          darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200/80"
+        }`}>
           <button
             type="button"
             onClick={() => setS2Expanded(!s2Expanded)}
-            className="w-full text-left bg-indigo-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100 transition-colors hover:bg-indigo-50/75 focus:outline-none cursor-pointer"
+            className={`w-full text-left px-5 py-4 flex justify-between items-center border-b transition-colors duration-300 focus:outline-none cursor-pointer ${
+              darkMode ? "bg-indigo-950/20 border-slate-850 hover:bg-indigo-950/30 text-white" : "bg-indigo-50/40 border-slate-100 hover:bg-indigo-50/75 text-slate-900"
+            }`}
           >
             <div className="flex items-center space-x-2.5">
-              <div className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg shrink-0">
+              <div className={`p-1.5 rounded-lg shrink-0 ${darkMode ? "bg-indigo-900/40 text-indigo-400" : "bg-indigo-100 text-indigo-700"}`}>
                 <BookOpen className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans flex items-center gap-1.5">
+              <h3 className={`text-sm font-black tracking-tight font-sans flex items-center gap-1.5 transition-colors duration-300 ${
+                darkMode ? "text-white" : "text-slate-900"
+              }`}>
                 <span>Section 2: Knowledge & Practice</span>
                 {s2Expanded ? (
                   <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
@@ -851,7 +1010,9 @@ export default function CandidateForm({
             </div>
             <div className="flex items-center space-x-3">
               <div className="flex flex-col items-end">
-                <span className="text-indigo-800 text-xs font-black font-mono bg-indigo-100/60 px-2.5 py-1 rounded-lg">
+                <span className={`text-xs font-black font-mono px-2.5 py-1 rounded-lg transition-colors ${
+                  darkMode ? "text-indigo-300 bg-indigo-950/40" : "text-indigo-800 bg-indigo-100/60"
+                }`}>
                   {s2Subtotal} / 40
                 </span>
                 <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">40% Weight</span>
@@ -863,14 +1024,20 @@ export default function CandidateForm({
             <div className="p-5 space-y-4">
               {/* Measurement Reading */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                <label className={`block text-xs font-bold leading-normal transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   {rubrics.s2.s2_measurementReading.label}
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-slate-800 text-slate-400" : "bg-[#f1f5f9] text-slate-600"
+                  }`}>
                     Weight: 20
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-emerald-950/30 text-emerald-400" : "bg-emerald-50 text-emerald-700"
+                  }`}>
                     Result: ({num(s2_measurementReading)}/100) * 20 = {Math.round(s2_meas_w * 10) / 10}
                   </span>
                 </div>
@@ -882,22 +1049,32 @@ export default function CandidateForm({
                     step="1"
                     value={s2_measurementReading}
                     onChange={(e) => handleNumberChange(setS2MeasurementReading, e.target.value, 100)}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                    className={`flex-1 px-4 py-3 border rounded-xl text-sm text-center font-bold transition-all focus:outline-none focus:ring-1 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                        : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                    }`}
                   />
                   <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
                 </div>
               </div>
 
               {/* Knowledge in Machines */}
-              <div className="space-y-1.5 pt-4 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-800 leading-normal">
+              <div className={`space-y-1.5 pt-4 border-t transition-colors duration-300 ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                <label className={`block text-xs font-bold leading-normal transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   {rubrics.s2.s2_machineKnowledge.label}
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-slate-800 text-slate-400" : "bg-[#f1f5f9] text-slate-600"
+                  }`}>
                     Weight: 20
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-emerald-950/30 text-emerald-400" : "bg-emerald-50 text-emerald-700"
+                  }`}>
                     Result: ({num(s2_machineKnowledge)}/100) * 20 = {Math.round(s2_mach_w * 10) / 10}
                   </span>
                 </div>
@@ -909,22 +1086,32 @@ export default function CandidateForm({
                     step="1"
                     value={s2_machineKnowledge}
                     onChange={(e) => handleNumberChange(setS2MachineKnowledge, e.target.value, 100)}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                    className={`flex-1 px-4 py-3 border rounded-xl text-sm text-center font-bold transition-all focus:outline-none focus:ring-1 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                        : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                    }`}
                   />
                   <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
                 </div>
               </div>
 
               {/* Knowledge & Practise Methodology */}
-              <div className="space-y-1.5 pt-4 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-800 leading-normal">
+              <div className={`space-y-1.5 pt-4 border-t transition-colors duration-300 ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                <label className={`block text-xs font-bold leading-normal transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   {rubrics.s2.s2_methodology.label}
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-slate-800 text-slate-400" : "bg-[#f1f5f9] text-slate-600"
+                  }`}>
                     Weight: 50
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-emerald-950/30 text-emerald-400" : "bg-emerald-50 text-emerald-700"
+                  }`}>
                     Result: ({num(s2_methodology)}/100) * 50 = {Math.round(s2_meth_w * 10) / 10}
                   </span>
                 </div>
@@ -936,22 +1123,32 @@ export default function CandidateForm({
                     step="1"
                     value={s2_methodology}
                     onChange={(e) => handleNumberChange(setS2Methodology, e.target.value, 100)}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                    className={`flex-1 px-4 py-3 border rounded-xl text-sm text-center font-bold transition-all focus:outline-none focus:ring-1 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                        : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                    }`}
                   />
                   <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
                 </div>
               </div>
 
               {/* Knowledge & Practise with HSE */}
-              <div className="space-y-1.5 pt-4 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-800 leading-normal">
+              <div className={`space-y-1.5 pt-4 border-t transition-colors duration-300 ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                <label className={`block text-xs font-bold leading-normal transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   {rubrics.s2.s2_hseEquipment.label}
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-slate-800 text-slate-400" : "bg-[#f1f5f9] text-slate-600"
+                  }`}>
                     Weight: 10
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-emerald-950/30 text-emerald-400" : "bg-emerald-50 text-emerald-700"
+                  }`}>
                     Result: ({num(s2_hseEquipment)}/100) * 10 = {Math.round(s2_hse_w * 10) / 10}
                   </span>
                 </div>
@@ -963,7 +1160,11 @@ export default function CandidateForm({
                     step="1"
                     value={s2_hseEquipment}
                     onChange={(e) => handleNumberChange(setS2HseEquipment, e.target.value, 100)}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                    className={`flex-1 px-4 py-3 border rounded-xl text-sm text-center font-bold transition-all focus:outline-none focus:ring-1 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                        : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                    }`}
                   />
                   <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
                 </div>
@@ -973,17 +1174,23 @@ export default function CandidateForm({
         </div>
 
         {/* 6. Section 3: Appearance & Attitude */}
-        <div className="bg-white rounded-[20px] border-l-[6px] border-l-amber-500 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
+        <div className={`rounded-[20px] border-l-[6px] border-l-amber-500 border-y border-r overflow-hidden shadow-3xs transition-all duration-300 ${
+          darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200/80"
+        }`}>
           <button
             type="button"
             onClick={() => setS3Expanded(!s3Expanded)}
-            className="w-full text-left bg-amber-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100 transition-colors hover:bg-amber-50/75 focus:outline-none cursor-pointer"
+            className={`w-full text-left px-5 py-4 flex justify-between items-center border-b transition-colors duration-300 focus:outline-none cursor-pointer ${
+              darkMode ? "bg-amber-950/10 border-slate-850 hover:bg-amber-950/20 text-white" : "bg-amber-50/40 border-slate-100 hover:bg-amber-50/75 text-slate-900"
+            }`}
           >
             <div className="flex items-center space-x-2.5">
-              <div className="p-1.5 bg-amber-100 text-amber-700 rounded-lg shrink-0">
+              <div className={`p-1.5 rounded-lg shrink-0 ${darkMode ? "bg-amber-900/40 text-amber-400" : "bg-amber-100 text-amber-700"}`}>
                 <Heart className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans flex items-center gap-1.5">
+              <h3 className={`text-sm font-black tracking-tight font-sans flex items-center gap-1.5 transition-colors duration-300 ${
+                darkMode ? "text-white" : "text-slate-900"
+              }`}>
                 <span>Section 3: Appearance & Attitude</span>
                 {s3Expanded ? (
                   <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
@@ -994,7 +1201,9 @@ export default function CandidateForm({
             </div>
             <div className="flex items-center space-x-3">
               <div className="flex flex-col items-end">
-                <span className="text-amber-800 text-xs font-black font-mono bg-amber-100/60 px-2.5 py-1 rounded-lg">
+                <span className={`text-xs font-black font-mono px-2.5 py-1 rounded-lg transition-colors ${
+                  darkMode ? "text-amber-300 bg-amber-950/40" : "text-amber-800 bg-amber-100/60"
+                }`}>
                   {s3Subtotal} / 10
                 </span>
                 <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">10% Weight</span>
@@ -1006,14 +1215,20 @@ export default function CandidateForm({
             <div className="p-5 space-y-4">
               {/* Physical Appearance & Fitness */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-800 leading-normal">
+                <label className={`block text-xs font-bold leading-normal transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   {rubrics.s3.s3_physicalAppearance.label}
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-slate-800 text-slate-400" : "bg-[#f1f5f9] text-slate-600"
+                  }`}>
                     Weight: 25
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-emerald-950/30 text-emerald-400" : "bg-emerald-50 text-emerald-700"
+                  }`}>
                     Result: ({num(s3_physicalAppearance)}/100) * 25 = {Math.round(s3_phys_w * 10) / 10}
                   </span>
                 </div>
@@ -1025,22 +1240,32 @@ export default function CandidateForm({
                     step="1"
                     value={s3_physicalAppearance}
                     onChange={(e) => handleNumberChange(setS3PhysicalAppearance, e.target.value, 100)}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                    className={`flex-1 px-4 py-3 border rounded-xl text-sm text-center font-bold transition-all focus:outline-none focus:ring-1 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                        : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                    }`}
                   />
                   <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
                 </div>
               </div>
 
               {/* Health Condition */}
-              <div className="space-y-1.5 pt-4 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-800 leading-normal">
+              <div className={`space-y-1.5 pt-4 border-t transition-colors duration-300 ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                <label className={`block text-xs font-bold leading-normal transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   {rubrics.s3.s3_healthCondition.label}
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-slate-800 text-slate-400" : "bg-[#f1f5f9] text-slate-600"
+                  }`}>
                     Weight: 25
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-emerald-950/30 text-emerald-400" : "bg-emerald-50 text-emerald-700"
+                  }`}>
                     Result: ({num(s3_healthCondition)}/100) * 25 = {Math.round(s3_heal_w * 10) / 10}
                   </span>
                 </div>
@@ -1052,22 +1277,32 @@ export default function CandidateForm({
                     step="1"
                     value={s3_healthCondition}
                     onChange={(e) => handleNumberChange(setS3HealthCondition, e.target.value, 100)}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                    className={`flex-1 px-4 py-3 border rounded-xl text-sm text-center font-bold transition-all focus:outline-none focus:ring-1 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                        : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                    }`}
                   />
                   <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
                 </div>
               </div>
 
               {/* Character & Attitude */}
-              <div className="space-y-1.5 pt-4 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-800 leading-normal">
+              <div className={`space-y-1.5 pt-4 border-t transition-colors duration-300 ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                <label className={`block text-xs font-bold leading-normal transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   {rubrics.s3.s3_characterAttitude.label}
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-slate-800 text-slate-400" : "bg-[#f1f5f9] text-slate-600"
+                  }`}>
                     Weight: 30
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-emerald-950/30 text-emerald-400" : "bg-emerald-50 text-emerald-700"
+                  }`}>
                     Result: ({num(s3_characterAttitude)}/100) * 30 = {Math.round(s3_char_w * 10) / 10}
                   </span>
                 </div>
@@ -1079,22 +1314,32 @@ export default function CandidateForm({
                     step="1"
                     value={s3_characterAttitude}
                     onChange={(e) => handleNumberChange(setS3CharacterAttitude, e.target.value, 100)}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                    className={`flex-1 px-4 py-3 border rounded-xl text-sm text-center font-bold transition-all focus:outline-none focus:ring-1 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                        : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                    }`}
                   />
                   <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
                 </div>
               </div>
 
               {/* Ability to Work Extended Hours */}
-              <div className="space-y-1.5 pt-4 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-800 leading-normal">
+              <div className={`space-y-1.5 pt-4 border-t transition-colors duration-300 ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                <label className={`block text-xs font-bold leading-normal transition-colors duration-300 ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   {rubrics.s3.s3_extendedHours.label}
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#f1f5f9] text-slate-600 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-slate-800 text-slate-400" : "bg-[#f1f5f9] text-slate-600"
+                  }`}>
                     Weight: 20
                   </span>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-emerald-50 text-emerald-700 tracking-tight">
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded tracking-tight transition-colors ${
+                    darkMode ? "bg-emerald-950/30 text-emerald-400" : "bg-emerald-50 text-emerald-700"
+                  }`}>
                     Result: ({num(s3_extendedHours)}/100) * 20 = {Math.round(s3_ext_w * 10) / 10}
                   </span>
                 </div>
@@ -1106,7 +1351,11 @@ export default function CandidateForm({
                     step="1"
                     value={s3_extendedHours}
                     onChange={(e) => handleNumberChange(setS3ExtendedHours, e.target.value, 100)}
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 text-center font-bold"
+                    className={`flex-1 px-4 py-3 border rounded-xl text-sm text-center font-bold transition-all focus:outline-none focus:ring-1 ${
+                      darkMode
+                        ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700"
+                        : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                    }`}
                   />
                   <span className="text-slate-400 text-sm font-bold shrink-0">/ 100 marks</span>
                 </div>
@@ -1116,17 +1365,23 @@ export default function CandidateForm({
         </div>
 
         {/* 7. Section 4: Practical Test & Remarks */}
-        <div className="bg-white rounded-[20px] border-l-[6px] border-l-emerald-600 border-y border-r border-slate-200/80 overflow-hidden shadow-3xs">
+        <div className={`rounded-[20px] border-l-[6px] border-l-emerald-600 border-y border-r overflow-hidden shadow-3xs transition-all duration-300 ${
+          darkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200/80"
+        }`}>
           <button
             type="button"
             onClick={() => setS4Expanded(!s4Expanded)}
-            className="w-full text-left bg-emerald-50/40 px-5 py-4 flex justify-between items-center border-b border-slate-100 transition-colors hover:bg-emerald-50/75 focus:outline-none cursor-pointer"
+            className={`w-full text-left px-5 py-4 flex justify-between items-center border-b transition-colors duration-300 focus:outline-none cursor-pointer ${
+              darkMode ? "bg-emerald-950/10 border-slate-850 hover:bg-emerald-950/20 text-white" : "bg-emerald-50/40 border-slate-100 hover:bg-emerald-50/75 text-slate-900"
+            }`}
           >
             <div className="flex items-center space-x-2.5">
-              <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg shrink-0">
+              <div className={`p-1.5 rounded-lg shrink-0 ${darkMode ? "bg-emerald-900/40 text-emerald-400" : "bg-emerald-100 text-emerald-700"}`}>
                 <Hammer className="w-4 h-4 stroke-[2.5]" />
               </div>
-              <h3 className="text-sm font-black text-slate-900 tracking-tight font-sans flex items-center gap-1.5">
+              <h3 className={`text-sm font-black tracking-tight font-sans flex items-center gap-1.5 transition-colors duration-300 ${
+                darkMode ? "text-white" : "text-slate-900"
+              }`}>
                 <span>Section 4: Practical Test & Remarks</span>
                 {s4Expanded ? (
                   <ChevronUp className="w-4 h-4 text-slate-400 stroke-[3]" />
@@ -1141,7 +1396,9 @@ export default function CandidateForm({
             <div className="p-5 space-y-4">
               {/* Practical Test */}
               <div>
-                <label className="block text-xs font-bold text-slate-800 leading-normal mb-1">
+                <label className={`block text-xs font-bold leading-normal mb-1 transition-colors ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   Practical Test Status
                 </label>
                 <p className="text-[10px] text-slate-400 font-semibold tracking-tight mb-3">
@@ -1153,10 +1410,14 @@ export default function CandidateForm({
                     <input
                       type="checkbox"
                       checked={practicalTestRequired}
-                      onChange={(e) => setPracticalTestRequired(e.target.checked)}
-                      className="w-5 h-5 rounded border-slate-300 text-slate-950 focus:ring-slate-950 cursor-pointer accent-slate-950"
+                      onChange={(e) => setS4Expanded(true) || setPracticalTestRequired(e.target.checked)}
+                      className={`w-5 h-5 rounded border transition-colors cursor-pointer accent-blue-600 ${
+                        darkMode ? "border-slate-800 bg-slate-950" : "border-slate-300 bg-white"
+                      }`}
                     />
-                    <div className="text-sm font-extrabold text-slate-800 group-hover:text-slate-950 transition-colors">
+                    <div className={`text-sm font-extrabold transition-colors ${
+                      darkMode ? "text-slate-200 group-hover:text-white" : "text-slate-800 group-hover:text-slate-950"
+                    }`}>
                       Practical Test Required
                     </div>
                   </label>
@@ -1164,8 +1425,10 @@ export default function CandidateForm({
               </div>
 
               {/* Remarks */}
-              <div className="pt-4 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-800 mb-1.5">
+              <div className={`pt-4 border-t transition-colors duration-300 ${darkMode ? "border-slate-800" : "border-slate-100"}`}>
+                <label className={`block text-xs font-bold mb-1.5 transition-colors ${
+                  darkMode ? "text-slate-200" : "text-slate-800"
+                }`}>
                   Remarks
                 </label>
                 <textarea
@@ -1173,7 +1436,11 @@ export default function CandidateForm({
                   placeholder="Additional remarks..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 transition-all font-medium resize-none"
+                  className={`w-full px-4 py-3 border rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-1 transition-all font-medium resize-none ${
+                    darkMode
+                      ? "border-slate-800 bg-slate-950 text-slate-100 focus:ring-slate-700 placeholder-slate-600"
+                      : "border-slate-200 bg-white text-slate-800 focus:ring-slate-400"
+                  }`}
                 />
               </div>
             </div>
@@ -1186,7 +1453,11 @@ export default function CandidateForm({
           <button
             type="button"
             onClick={() => handleSave(false)}
-            className="w-full bg-black hover:bg-zinc-900 active:scale-98 text-white py-4 rounded-[14px] flex items-center justify-center gap-2.5 text-sm font-bold shadow-sm transition-all cursor-pointer"
+            className={`w-full active:scale-98 py-4 rounded-[14px] flex items-center justify-center gap-2.5 text-sm font-bold transition-all cursor-pointer ${
+              darkMode
+                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-900/20"
+                : "bg-black hover:bg-zinc-900 text-white shadow-sm"
+            }`}
           >
             <ClipboardCheck className="w-5 h-5 text-white stroke-[2.2]" />
             <span>Submit Assessment</span>
@@ -1196,9 +1467,13 @@ export default function CandidateForm({
           <button
             type="button"
             onClick={() => handleSave(true)}
-            className="w-full bg-white hover:bg-slate-50 active:scale-98 text-slate-800 py-4 border border-slate-200 rounded-[14px] flex items-center justify-center gap-2.5 text-sm font-bold shadow-3xs transition-all cursor-pointer"
+            className={`w-full active:scale-98 py-4 border rounded-[14px] flex items-center justify-center gap-2.5 text-sm font-bold transition-all cursor-pointer ${
+              darkMode
+                ? "bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-800 shadow-3xs"
+                : "bg-white hover:bg-slate-50 text-slate-800 border-slate-200 shadow-3xs"
+            }`}
           >
-            <Save className="w-5 h-5 text-slate-500 stroke-[2.2]" />
+            <Save className="w-5 h-5 text-slate-450 stroke-[2.2]" />
             <span>Save as Draft</span>
           </button>
         </div>
