@@ -25,6 +25,7 @@ import {
   Heart,
   Hammer
 } from "lucide-react";
+import SankenLogo from "./SankenLogo";
 
 interface CandidateDetailProps {
   candidate: Candidate;
@@ -78,20 +79,23 @@ export default function CandidateDetail({
     <div id="candidate-detail-mobile" className="flex flex-col h-full bg-slate-50 animate-fadeIn overflow-hidden">
       
       {/* Mobile Top Navigation (Hidden on Print) */}
-      <div className="bg-slate-900 text-white px-4 py-3 flex items-center justify-between shadow-md shrink-0 no-print">
+      <div className="bg-gradient-to-r from-[#2ea1e5] to-[#1e88e5] text-white px-4 py-3.5 flex items-center justify-between shadow-md shrink-0 no-print">
         <div className="flex items-center space-x-2.5">
           <button
             id="btn-detail-back"
             onClick={onBackToList}
-            className="p-1.5 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer text-slate-200"
+            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer text-white"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <span className="text-[9px] uppercase font-mono tracking-widest text-blue-400 font-bold block leading-none">Scorecard Details</span>
-            <h1 className="text-sm font-bold text-white mt-0.5 line-clamp-1">
-              {candidate.name}
-            </h1>
+          <div className="flex items-center gap-2">
+            <SankenLogo className="w-7 h-7" />
+            <div>
+              <span className="text-[8px] uppercase font-mono tracking-widest text-sky-100 font-bold block leading-none">Scorecard Details</span>
+              <h1 className="text-sm font-black text-white mt-0.5 line-clamp-1">
+                {candidate.name}
+              </h1>
+            </div>
           </div>
         </div>
 
@@ -100,7 +104,7 @@ export default function CandidateDetail({
           <button
             id="btn-detail-edit"
             onClick={() => onEdit(candidate)}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200 cursor-pointer"
+            className="p-1.5 hover:bg-white/10 rounded-lg text-white cursor-pointer"
             title="Edit Assessment"
           >
             <Edit className="w-4 h-4" />
@@ -108,7 +112,7 @@ export default function CandidateDetail({
           <button
             id="btn-detail-print"
             onClick={handlePrint}
-            className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-200 cursor-pointer"
+            className="p-1.5 hover:bg-white/10 rounded-lg text-white cursor-pointer"
             title="Print Scorecard"
           >
             <Printer className="w-4 h-4" />
@@ -127,7 +131,7 @@ export default function CandidateDetail({
               <p className="text-xs text-slate-500 font-mono">STANDARDIZED {positionInfo?.title.toUpperCase()} SKILLS EVALUATION FORM</p>
             </div>
             <div className="text-right">
-              <span className="text-xs font-mono font-bold bg-slate-900 text-white px-2.5 py-1 rounded">
+              <span className="text-xs font-mono font-bold bg-[#1e88e5] text-white px-2.5 py-1 rounded">
                 SCORECARD: {positionInfo?.title.toUpperCase()}
               </span>
             </div>

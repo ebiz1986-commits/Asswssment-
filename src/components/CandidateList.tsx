@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Candidate, POSITIONS } from "../types";
 import { calculateOverallScore, getStatusColor, exportToExcel } from "../utils";
 import { Search, Plus, ArrowLeft, SlidersHorizontal, Award, Scale, Phone, Download, User } from "lucide-react";
+import SankenLogo from "./SankenLogo";
 
 interface CandidateListProps {
   candidates: Candidate[];
@@ -67,20 +68,23 @@ export default function CandidateList({
     <div id="candidate-list-mobile" className="flex flex-col h-full bg-slate-50 animate-fadeIn relative pb-20">
       
       {/* Mobile Top Navigation Header */}
-      <div className="bg-slate-900 text-white px-4 py-4.5 flex items-center justify-between shadow-md shrink-0">
-        <div className="flex items-center space-x-3">
+      <div className="bg-gradient-to-r from-[#2ea1e5] to-[#1e88e5] text-white px-4 py-3.5 flex items-center justify-between shadow-md shrink-0">
+        <div className="flex items-center space-x-2.5">
           <button
             id="btn-back-to-positions"
             onClick={onBackToPositions}
-            className="p-1.5 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer active:scale-95 text-slate-200"
+            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer active:scale-95 text-white"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <span className="text-[9px] uppercase font-mono tracking-widest text-blue-400 font-bold block leading-none">Assessment List</span>
-            <h1 className="text-base font-bold text-white tracking-tight mt-0.5">
-              {tradeInfo?.title || "Trade"} Directory
-            </h1>
+          <div className="flex items-center gap-2">
+            <SankenLogo className="w-7 h-7" />
+            <div>
+              <span className="text-[8px] uppercase font-mono tracking-widest text-sky-100 font-bold block leading-none">Assessment List</span>
+              <h1 className="text-sm font-black text-white tracking-tight mt-0.5">
+                {tradeInfo?.title || "Trade"} Directory
+              </h1>
+            </div>
           </div>
         </div>
 
@@ -90,10 +94,10 @@ export default function CandidateList({
             const filterText = statusFilter !== "All" ? `_${statusFilter}` : "";
             exportToExcel(filteredCandidates, `${positionId}_candidates${filterText}`);
           }}
-          className="p-1.5 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 border border-slate-850 bg-slate-950/40 rounded-xl transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 text-[10px] font-black shadow-3xs px-2.5"
+          className="p-1.5 hover:bg-white/10 text-white border border-white/20 bg-white/10 rounded-xl transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 text-[10px] font-black shadow-3xs px-2.5"
           title="Download filtered assessments as Excel"
         >
-          <Download className="w-3.5 h-3.5 text-emerald-400" />
+          <Download className="w-3.5 h-3.5 text-white" />
           <span>Excel</span>
         </button>
       </div>
@@ -122,7 +126,7 @@ export default function CandidateList({
                 onClick={() => setStatusFilter(status)}
                 className={`px-3 py-1 text-[10px] font-bold rounded-full border transition-all whitespace-nowrap cursor-pointer ${
                   statusFilter === status
-                    ? "bg-slate-900 text-white border-slate-900"
+                    ? "bg-[#1e88e5] text-white border-[#1e88e5]"
                     : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200"
                 }`}
               >
@@ -136,7 +140,7 @@ export default function CandidateList({
             id="btn-toggle-sort"
             onClick={() => setShowSortDropdown(!showSortDropdown)}
             className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-              showSortDropdown ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 text-slate-600 border-slate-200"
+              showSortDropdown ? "bg-[#1e88e5] text-white border-[#1e88e5]" : "bg-slate-50 text-slate-600 border-slate-200"
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />

@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hamm
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
+import SankenLogo from "./SankenLogo";
 
 interface CandidateFormProps {
   candidate?: Candidate | null; // If null, we are adding new
@@ -194,41 +195,41 @@ export default function CandidateForm({
   // Section 1: Experience & Quals (Marks out of 100)
 
   const [s1_siteExperience, setS1SiteExperience] = useState<number | "">(
-    initialCandidate ? initialCandidate.s1_siteExperience : 0
+    initialCandidate ? (initialCandidate.s1_siteExperience ?? "") : ""
   );
   const [s1_nvqQualification, setS1NvqQualification] = useState<number | "">(
-    initialCandidate ? initialCandidate.s1_nvqQualification : 0
+    initialCandidate ? (initialCandidate.s1_nvqQualification ?? "") : ""
   );
   const [s1_recommendation, setS1Recommendation] = useState<number | "">(
-    initialCandidate ? initialCandidate.s1_recommendation : 0
+    initialCandidate ? (initialCandidate.s1_recommendation ?? "") : ""
   );
 
   // Section 2: Knowledge & Practice (Marks out of 100)
   const [s2_measurementReading, setS2MeasurementReading] = useState<number | "">(
-    initialCandidate ? initialCandidate.s2_measurementReading : 0
+    initialCandidate ? (initialCandidate.s2_measurementReading ?? "") : ""
   );
   const [s2_machineKnowledge, setS2MachineKnowledge] = useState<number | "">(
-    initialCandidate ? initialCandidate.s2_machineKnowledge : 0
+    initialCandidate ? (initialCandidate.s2_machineKnowledge ?? "") : ""
   );
   const [s2_methodology, setS2Methodology] = useState<number | "">(
-    initialCandidate ? initialCandidate.s2_methodology : 0
+    initialCandidate ? (initialCandidate.s2_methodology ?? "") : ""
   );
   const [s2_hseEquipment, setS2HseEquipment] = useState<number | "">(
-    initialCandidate ? initialCandidate.s2_hseEquipment : 0
+    initialCandidate ? (initialCandidate.s2_hseEquipment ?? "") : ""
   );
 
   // Section 3: Appearance & Attitude (Marks out of 100)
   const [s3_physicalAppearance, setS3PhysicalAppearance] = useState<number | "">(
-    initialCandidate ? initialCandidate.s3_physicalAppearance : 0
+    initialCandidate ? (initialCandidate.s3_physicalAppearance ?? "") : ""
   );
   const [s3_healthCondition, setS3HealthCondition] = useState<number | "">(
-    initialCandidate ? initialCandidate.s3_healthCondition : 0
+    initialCandidate ? (initialCandidate.s3_healthCondition ?? "") : ""
   );
   const [s3_characterAttitude, setS3CharacterAttitude] = useState<number | "">(
-    initialCandidate ? initialCandidate.s3_characterAttitude : 0
+    initialCandidate ? (initialCandidate.s3_characterAttitude ?? "") : ""
   );
   const [s3_extendedHours, setS3ExtendedHours] = useState<number | "">(
-    initialCandidate ? initialCandidate.s3_extendedHours : 0
+    initialCandidate ? (initialCandidate.s3_extendedHours ?? "") : ""
   );
 
   // Section 4: Practical Test & Remarks
@@ -404,20 +405,25 @@ export default function CandidateForm({
       {/* Form and Content container scrollable */}
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 custom-scrollbar pb-10">
         
-        {/* 2. Total Score Card (Black rounded card with dynamic content) */}
-        <div className="bg-[#141414] rounded-[20px] p-5 text-white flex justify-between items-center shadow-xs">
-          <div>
-            <span className="text-slate-400 text-xs font-semibold tracking-wider uppercase">Total Score</span>
+        {/* 2. Total Score Card (Vibrant light blue gradient card matching logo) */}
+        <div className="bg-gradient-to-r from-[#2ea1e5] via-[#4db7eb] to-[#1e88e5] rounded-[20px] p-5 text-white flex justify-between items-center shadow-md relative overflow-hidden">
+          {/* Subtle background branding watermark */}
+          <div className="absolute right-0 top-0 bottom-0 opacity-15 pointer-events-none translate-x-4 flex items-center">
+            <SankenLogo className="w-32 h-32" />
+          </div>
+          
+          <div className="relative z-10">
+            <span className="text-sky-100 text-xs font-bold tracking-wider uppercase">Total Score</span>
             <div className="mt-2.5 flex items-baseline gap-1.5">
-              <span className="text-4xl font-extrabold text-white font-sans">{estimatedOverallScore}</span>
-              <span className="text-slate-400 text-sm font-medium">/ 100</span>
+              <span className="text-4xl font-black text-white font-sans">{estimatedOverallScore}</span>
+              <span className="text-sky-100/80 text-sm font-semibold">/ 100</span>
             </div>
           </div>
-          <div className="text-right">
-            <span className={`inline-block px-3 py-1 rounded-xl font-sans text-xs font-black tracking-wider uppercase border ${estimatedOverallScore > 59 ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" : "bg-rose-500/15 text-rose-400 border-rose-500/30"}`}>
+          <div className="text-right relative z-10">
+            <span className={`inline-block px-3 py-1 rounded-xl font-sans text-xs font-black tracking-wider uppercase border ${estimatedOverallScore > 59 ? "bg-emerald-500/30 text-white border-emerald-400" : "bg-rose-500/30 text-white border-rose-300"}`}>
               {estimatedOverallScore > 59 ? "PASS" : "FAIL"}
             </span>
-            <p className="text-[9px] text-slate-400 mt-1 font-semibold">Score &gt; 59 to Pass</p>
+            <p className="text-[9px] text-sky-100 mt-1 font-semibold">Score &gt; 59 to Pass</p>
           </div>
         </div>
 

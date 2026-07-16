@@ -10,6 +10,7 @@ import {
   AlertCircle, TrendingUp, BarChart3, HelpCircle, Eye, RefreshCw
 } from "lucide-react";
 import { UserProfile, Candidate, POSITIONS } from "../types";
+import SankenLogo from "./SankenLogo";
 
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -416,21 +417,29 @@ export default function AdminPage() {
   );
 
   return (
-    <div className="min-h-[100dvh] bg-slate-900 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none">
-      <div className="w-full h-[100dvh] md:w-full md:max-w-6xl md:h-[85vh] md:rounded-[32px] bg-slate-950 md:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden md:border-[10px] md:border-slate-800 relative">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-sky-400 via-sky-200 to-blue-300 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none relative overflow-hidden">
+      {/* Decorative branding floating elements */}
+      <div className="absolute -left-12 -top-12 opacity-15 pointer-events-none">
+        <SankenLogo className="w-64 h-64" />
+      </div>
+      <div className="absolute -right-12 -bottom-12 opacity-15 pointer-events-none">
+        <SankenLogo className="w-64 h-64" />
+      </div>
+
+      <div className="w-full h-[100dvh] md:w-full md:max-w-6xl md:h-[85vh] md:rounded-[32px] bg-sky-950 md:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden md:border-[10px] md:border-sky-900 relative z-10">
         
         {/* Notch */}
-        <div className="hidden sm:block md:hidden absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-slate-800 rounded-b-2xl z-50">
-          <div className="w-14 h-1 bg-slate-950 rounded-full mx-auto mt-1.5"></div>
+        <div className="hidden sm:block md:hidden absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-sky-900 rounded-b-2xl z-50">
+          <div className="w-14 h-1 bg-sky-950 rounded-full mx-auto mt-1.5"></div>
         </div>
 
         {/* Status bar */}
-        <div className="bg-slate-900 text-slate-300 px-6 pt-2 pb-1.5 hidden sm:flex md:hidden items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
+        <div className="bg-[#1e88e5] text-white px-6 pt-2 pb-1.5 hidden sm:flex md:hidden items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
           <span className="font-semibold">{currentTime || "9:41 AM"}</span>
           <div className="flex items-center space-x-1.5">
-            <Signal className="w-3.5 h-3.5 text-slate-300" />
-            <Wifi className="w-3.5 h-3.5 text-slate-300" />
-            <Battery className="w-4 h-4 text-slate-300" />
+            <Signal className="w-3.5 h-3.5 text-white" />
+            <Wifi className="w-3.5 h-3.5 text-white" />
+            <Battery className="w-4 h-4 text-white" />
           </div>
         </div>
 
@@ -445,11 +454,11 @@ export default function AdminPage() {
           </button>
           
           <div className="text-center">
-            <h1 className="text-xs font-black text-slate-900 tracking-tight flex items-center gap-1 justify-center md:text-sm">
-              <Shield className="w-3.5 h-3.5 text-slate-800" />
+            <h1 className="text-xs font-black text-slate-900 tracking-tight flex items-center gap-1.5 justify-center md:text-sm">
+              <SankenLogo className="w-4 h-4" />
               Sanken Admin
             </h1>
-            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-none mt-0.5">Control Center</p>
+            <p className="text-[9px] text-[#2ea1e5] font-black uppercase tracking-wider leading-none mt-0.5">Control Center</p>
           </div>
 
           <button 

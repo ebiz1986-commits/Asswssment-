@@ -4,6 +4,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
 import { Shield, Key, Mail, AlertCircle, Info, Signal, Wifi, Battery, Landmark, UserCheck, ArrowRight } from "lucide-react";
+import SankenLogo from "./SankenLogo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -135,21 +136,29 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-slate-900 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none">
-      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-slate-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden sm:border-[10px] sm:border-slate-800 relative">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-sky-400 via-sky-200 to-blue-300 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none relative overflow-hidden">
+      {/* Dynamic floating background brand mark watermark */}
+      <div className="absolute -left-16 -top-16 opacity-20 pointer-events-none">
+        <SankenLogo className="w-64 h-64" />
+      </div>
+      <div className="absolute -right-16 -bottom-16 opacity-20 pointer-events-none">
+        <SankenLogo className="w-64 h-64" />
+      </div>
+
+      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-sky-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden sm:border-[10px] sm:border-sky-900 relative z-10">
         
         {/* Notch */}
-        <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-slate-800 rounded-b-2xl z-50">
-          <div className="w-14 h-1 bg-slate-950 rounded-full mx-auto mt-1.5"></div>
+        <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-sky-900 rounded-b-2xl z-50">
+          <div className="w-14 h-1 bg-sky-950 rounded-full mx-auto mt-1.5"></div>
         </div>
 
         {/* Status bar */}
-        <div className="bg-slate-900 text-slate-300 px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
+        <div className="bg-[#1e88e5] text-white px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
           <span className="font-semibold">9:41 AM</span>
           <div className="flex items-center space-x-1.5">
-            <Signal className="w-3.5 h-3.5 text-slate-300" />
-            <Wifi className="w-3.5 h-3.5 text-slate-300" />
-            <Battery className="w-4 h-4 text-slate-300" />
+            <Signal className="w-3.5 h-3.5 text-white" />
+            <Wifi className="w-3.5 h-3.5 text-white" />
+            <Battery className="w-4 h-4 text-white" />
           </div>
         </div>
 
@@ -159,13 +168,13 @@ export default function LoginPage() {
             
             {/* Logo/Header */}
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center mx-auto shadow-md">
-                <Shield className="w-6 h-6 text-white" />
+              <div className="flex justify-center">
+                <SankenLogo className="w-24 h-14" />
               </div>
               <h1 className="text-xl font-black text-slate-900 tracking-tight">
                 Sanken Overseas
               </h1>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-[#2ea1e5] font-black uppercase tracking-wider">
                 Trades Assessment Portal
               </p>
             </div>
@@ -254,7 +263,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter password"
-                      className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 font-medium transition-all"
+                      className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/10 focus:border-[#1e88e5] font-medium transition-all"
                       required
                       disabled={loading}
                     />
@@ -264,7 +273,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-black tracking-tight transition-all active:scale-95 shadow-md shadow-slate-900/10 flex items-center justify-center cursor-pointer disabled:opacity-55"
+                  className="w-full py-3.5 bg-gradient-to-r from-[#2ea1e5] to-[#1e88e5] hover:from-[#1e88e5] hover:to-[#1565c0] text-white rounded-xl text-sm font-black tracking-tight transition-all active:scale-95 shadow-md shadow-sky-500/10 flex items-center justify-center cursor-pointer disabled:opacity-55"
                 >
                   {loading ? "Authenticating..." : "Sign In"}
                 </button>

@@ -14,6 +14,7 @@ import CandidateForm from "./components/CandidateForm";
 import LoginPage from "./components/LoginPage";
 import AdminPage from "./components/AdminPage";
 import MobileRestricted from "./components/MobileRestricted";
+import SankenLogo from "./components/SankenLogo";
 import { RotateCcw, Download, Wifi, Battery, Signal, Shield, LogOut, Landmark, UserCheck, ArrowRight, Sparkles, WifiOff, RefreshCw } from "lucide-react";
 
 export default function App() {
@@ -374,25 +375,33 @@ function MainApp({
   const selectedCandidate = candidates.find((c) => c.id === selectedId) || null;
 
   return (
-    <div className="min-h-[100dvh] bg-slate-900 flex items-center justify-center p-0 sm:p-5 md:p-8 no-print select-none">
-      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-slate-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden sm:border-[10px] sm:border-slate-800 relative select-none">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-sky-400 via-sky-200 to-blue-300 flex items-center justify-center p-0 sm:p-5 md:p-8 no-print select-none relative overflow-hidden">
+      {/* Decorative background branding shapes */}
+      <div className="absolute -left-12 -top-12 opacity-15 pointer-events-none">
+        <SankenLogo className="w-64 h-64" />
+      </div>
+      <div className="absolute -right-12 -bottom-12 opacity-15 pointer-events-none">
+        <SankenLogo className="w-64 h-64" />
+      </div>
+
+      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-sky-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden sm:border-[10px] sm:border-sky-900 relative select-none z-10">
         
         {/* Notch */}
-        <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-slate-800 rounded-b-2xl z-50">
-          <div className="w-14 h-1 bg-slate-950 rounded-full mx-auto mt-1.5"></div>
+        <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6.5 bg-sky-900 rounded-b-2xl z-50">
+          <div className="w-14 h-1 bg-sky-950 rounded-full mx-auto mt-1.5"></div>
         </div>
 
         {/* Status bar */}
-        <div className="bg-slate-900 text-slate-300 px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight select-none shrink-0 no-print">
+        <div className="bg-[#1e88e5] text-white px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight select-none shrink-0 no-print">
           <span className="font-semibold">{currentTime || "9:41 AM"}</span>
           <div className="flex items-center space-x-1.5">
-            <Signal className="w-3.5 h-3.5 text-slate-300" />
+            <Signal className="w-3.5 h-3.5 text-white" />
             {isOnline ? (
-              <Wifi className="w-3.5 h-3.5 text-slate-300" />
+              <Wifi className="w-3.5 h-3.5 text-white" />
             ) : (
-              <WifiOff className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+              <WifiOff className="w-3.5 h-3.5 text-rose-300 animate-pulse" />
             )}
-            <Battery className="w-4 h-4 text-slate-300" />
+            <Battery className="w-4 h-4 text-white" />
           </div>
         </div>
 
@@ -400,6 +409,7 @@ function MainApp({
         <div className="bg-white border-b border-slate-100 px-4 py-2 shrink-0 flex items-center justify-between no-print shadow-4xs">
           <div>
             <div className="flex items-center gap-1.5">
+              <SankenLogo className="w-5 h-5" />
               <h1 className="text-xs font-black text-slate-900 tracking-tight leading-none">Sanken Trades</h1>
               {syncStatus === 'offline' || !isOnline ? (
                 <span className="flex items-center gap-0.5 text-[7px] font-black text-amber-700 bg-amber-50 border border-amber-100 px-1 py-0.5 rounded-full shrink-0" title="Device is offline">
@@ -610,25 +620,33 @@ function ProjectSelectionScreen({
   onLogout: () => void;
 }) {
   return (
-    <div className="min-h-[100dvh] bg-slate-900 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none">
-      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-slate-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden sm:border-[10px] sm:border-slate-800 relative">
-        <div className="bg-slate-900 text-slate-300 px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-sky-400 via-sky-200 to-blue-300 flex items-center justify-center p-0 sm:p-5 md:p-8 select-none relative overflow-hidden">
+      {/* Dynamic background brand watermark */}
+      <div className="absolute -left-16 -top-16 opacity-15 pointer-events-none">
+        <SankenLogo className="w-64 h-64" />
+      </div>
+      <div className="absolute -right-16 -bottom-16 opacity-15 pointer-events-none">
+        <SankenLogo className="w-64 h-64" />
+      </div>
+
+      <div className="w-full h-[100dvh] sm:w-[380px] sm:h-[820px] sm:rounded-[44px] bg-sky-950 sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] flex flex-col overflow-hidden sm:border-[10px] sm:border-sky-900 relative z-10">
+        <div className="bg-[#1e88e5] text-white px-6 pt-2 pb-1.5 hidden sm:flex items-center justify-between text-[10px] font-bold tracking-tight shrink-0">
           <span className="font-semibold">9:41 AM</span>
           <div className="flex items-center space-x-1.5">
-            <Signal className="w-3.5 h-3.5 text-slate-300" />
-            <Wifi className="w-3.5 h-3.5 text-slate-300" />
-            <Battery className="w-4 h-4 text-slate-300" />
+            <Signal className="w-3.5 h-3.5 text-white" />
+            <Wifi className="w-3.5 h-3.5 text-white" />
+            <Battery className="w-4 h-4 text-white" />
           </div>
         </div>
 
         <div className="flex-1 bg-slate-50 flex flex-col justify-between overflow-y-auto custom-scrollbar p-6">
           <div className="my-auto space-y-6">
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center mx-auto shadow-md">
-                <Landmark className="w-6 h-6 text-white" />
+              <div className="flex justify-center">
+                <SankenLogo className="w-24 h-14" />
               </div>
               <h1 className="text-xl font-black text-slate-900 tracking-tight">Sanken Projects</h1>
-              <p className="text-xs text-slate-500 font-semibold">
+              <p className="text-xs text-[#2ea1e5] font-black uppercase tracking-wider">
                 Select your active project profile:
               </p>
             </div>
