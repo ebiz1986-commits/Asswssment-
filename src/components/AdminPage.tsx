@@ -33,6 +33,11 @@ export default function AdminPage() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loadingCandidates, setLoadingCandidates] = useState(true);
 
+  // Requirement Companies list state
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
+  const [newCompanyName, setNewCompanyName] = useState("");
+
   // Active view tab state
   const [activeTab, setActiveTab] = useState<"dashboard" | "accounts">("dashboard");
 
@@ -116,6 +121,31 @@ export default function AdminPage() {
       setLoadingCandidates(false);
     });
 
+    // Sync requirement companies in real-time
+    const unsubscribeCompanies = onSnapshot(collection(db, "requirement_companies"), (snapshot) => {
+      const list: { id: string; name: string }[] = [];
+      snapshot.forEach((doc) => {
+        list.push({ id: doc.id, name: doc.data().name });
+      });
+
+      if (snapshot.empty) {
+        // Seed default companies if collection is empty
+        const defaults = ["Sanken Overseas", "Sobha", "Al Nakheel", "Emaar", "Damac"];
+        defaults.forEach(async (comp) => {
+          const slug = comp.toLowerCase().replace(/[^a-z0-9]/g, "_");
+          await setDoc(doc(db, "requirement_companies", slug), { id: slug, name: comp });
+        });
+      } else {
+        // Sort alphabetically
+        list.sort((a, b) => a.name.localeCompare(b.name));
+        setCompanies(list);
+        setLoadingCompanies(false);
+      }
+    }, (error) => {
+      console.error("Companies sync error:", error);
+      setLoadingCompanies(false);
+    });
+
     // Time ticker
     const updateTime = () => {
       const now = new Date();
@@ -135,6 +165,7 @@ export default function AdminPage() {
       }
       unsubscribeProfiles();
       unsubscribeCandidates();
+      unsubscribeCompanies();
       clearInterval(interval);
     };
   }, [navigate]);
@@ -218,6 +249,41 @@ export default function AdminPage() {
       } catch (err) {
         console.error("Error deleting profile:", err);
         alert("Failed to delete profile.");
+      }
+    }
+  };
+
+  const handleCreateCompany = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSuccessMsg("");
+    setErrorMsg("");
+    const compName = newCompanyName.trim();
+    if (!compName) return;
+
+    try {
+      const slug = compName.toLowerCase().replace(/[^a-z0-9]/g, "_");
+      const docRef = doc(db, "requirement_companies", slug);
+      await setDoc(docRef, {
+        id: slug,
+        name: compName,
+        createdAt: new Date().toISOString()
+      });
+      setNewCompanyName("");
+      setSuccessMsg(`Successfully added company "${compName}"!`);
+    } catch (err) {
+      console.error("Error creating company:", err);
+      setErrorMsg("Failed to add requirement company.");
+    }
+  };
+
+  const handleDeleteCompany = async (compId: string, compName: string) => {
+    if (window.confirm(`Are you sure you want to delete "${compName}" from the requirement companies list?`)) {
+      try {
+        await deleteDoc(doc(db, "requirement_companies", compId));
+        setSuccessMsg(`Successfully deleted company "${compName}".`);
+      } catch (err) {
+        console.error("Error deleting company:", err);
+        setErrorMsg("Failed to delete company.");
       }
     }
   };
@@ -839,8 +905,7 @@ export default function AdminPage() {
 
           {activeTab === "accounts" && (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 items-start">
-              
-              {/* Left Column: DB Admin & feedback banners */}
+                      {/* Left Column: DB Admin & feedback banners */}
               <div className="md:col-span-4 space-y-4">
                 {/* Seeding & Full Backup Section */}
                 <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-3 shadow-sm">
@@ -866,6 +931,53 @@ export default function AdminPage() {
                       <Database className="w-3.5 h-3.5 text-slate-400" />
                       Export Full JSON Backup
                     </button>
+                  </div>
+                </div>
+
+                {/* Requirement Companies Management Card */}
+                <div className="bg-white rounded-[20px] border border-slate-100 p-4 space-y-3.5 shadow-3xs">
+                  <div className="flex items-center gap-1.5 border-b border-slate-50 pb-2">
+                    <Landmark className="w-4 h-4 text-slate-800" />
+                    <h2 className="text-xs font-black text-slate-900 tracking-tight">Requirement Companies ({companies.length})</h2>
+                  </div>
+
+                  <form onSubmit={handleCreateCompany} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Add Company (e.g. Sobha)"
+                      value={newCompanyName}
+                      onChange={(e) => setNewCompanyName(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900 font-semibold"
+                      required
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-2xs font-extrabold tracking-tight cursor-pointer active:scale-95 shadow-3xs whitespace-nowrap"
+                    >
+                      Add
+                    </button>
+                  </form>
+
+                  <div className="space-y-1.5 max-h-[180px] overflow-y-auto custom-scrollbar pr-1">
+                    {loadingCompanies ? (
+                      <p className="text-[10px] text-slate-400 font-bold text-center py-2">Syncing companies...</p>
+                    ) : companies.length === 0 ? (
+                      <p className="text-[10px] text-slate-400 font-bold text-center py-2">No companies added yet.</p>
+                    ) : (
+                      companies.map((comp) => (
+                        <div key={comp.id} className="bg-slate-50 border border-slate-100 rounded-xl p-2.5 flex items-center justify-between">
+                          <span className="text-2xs font-bold text-slate-800 select-all">{comp.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCompany(comp.id, comp.name)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-90 cursor-pointer shrink-0"
+                            title="Delete Company"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
 

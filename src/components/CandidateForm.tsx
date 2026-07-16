@@ -3,7 +3,8 @@ import { Candidate, POSITIONS, getPositionRubrics } from "../types";
 import { migrateCandidateToHundredScale } from "../utils";
 import { ArrowLeft, Calendar, ClipboardCheck, Save, Award, BookOpen, Heart, Hammer, Camera, Upload, Trash2, User, Image, Loader2 } from "lucide-react";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { storage } from "../lib/firebase";
+import { db, storage } from "../lib/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
 interface CandidateFormProps {
   candidate?: Candidate | null; // If null, we are adding new
@@ -33,6 +34,7 @@ export default function CandidateForm({
   const [assessor, setAssessor] = useState(initialCandidate?.assessor || activeProfile?.engineerName || "");
   const [projectName, setProjectName] = useState(initialCandidate?.projectName || activeProfile?.projectName || "Default Project");
   const [requirementCompany, setRequirementCompany] = useState(initialCandidate?.requirementCompany || "");
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const [contact, setContact] = useState(initialCandidate?.contact || "");
 
   // Camera & Upload states
@@ -49,6 +51,20 @@ export default function CandidateForm({
       }
     };
   }, [stream]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, "requirement_companies"), (snapshot) => {
+      const list: { id: string; name: string }[] = [];
+      snapshot.forEach((doc) => {
+        list.push({ id: doc.id, name: doc.data().name });
+      });
+      list.sort((a, b) => a.name.localeCompare(b.name));
+      setCompanies(list);
+    }, (error) => {
+      console.error("Error fetching requirement companies:", error);
+    });
+    return unsubscribe;
+  }, []);
 
   const startCamera = async () => {
     setCameraError(null);
@@ -619,13 +635,18 @@ export default function CandidateForm({
                 <label className="block text-xs font-extrabold text-slate-800 tracking-tight mb-1.5">
                   Requirement Company Name
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Sanken Overseas, Sobha"
+                <select
                   value={requirementCompany}
                   onChange={(e) => setRequirementCompany(e.target.value)}
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400 transition-all font-semibold"
-                />
+                >
+                  <option value="">-- Select Company --</option>
+                  {companies.map((comp) => (
+                    <option key={comp.id} value={comp.name}>
+                      {comp.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

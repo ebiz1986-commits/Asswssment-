@@ -31,7 +31,14 @@ export default function App() {
     const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
     return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ua);
   });
-  const [bypassMobileCheck, setBypassMobileCheck] = useState(false);
+  const [bypassMobileCheck, setBypassMobileCheck] = useState(() => {
+    // Auto-bypass in development/preview environments (e.g. *.run.app, localhost, or inside iframe)
+    const isDevEnv = window.location.hostname.includes("run.app") || 
+                     window.location.hostname === "localhost" || 
+                     window.location.hostname === "127.0.0.1" ||
+                     window.self !== window.top;
+    return isDevEnv || localStorage.getItem("bypass_mobile_check") === "true";
+  });
 
   useEffect(() => {
     let unsubscribeProfile: (() => void) | null = null;
@@ -136,7 +143,10 @@ export default function App() {
         element={
           showMobileCheck ? (
             <MobileRestricted
-              onBypass={() => setBypassMobileCheck(true)}
+              onBypass={() => {
+                setBypassMobileCheck(true);
+                localStorage.setItem("bypass_mobile_check", "true");
+              }}
               onLogout={() => signOut(auth)}
               userEmail={user?.email}
             />
